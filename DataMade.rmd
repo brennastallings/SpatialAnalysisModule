@@ -8,6 +8,9 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+Folder w/ Modlue Name
+Files/Images/R Markdaon, Knit/ all 
+can include modified dataset that is the output of the analysis
 
 
 Will need a dataset with an x, y, and another attribute
@@ -15,6 +18,7 @@ Will need a dataset with an x, y, and another attribute
 Ill start with 20 points and then add more later
 
 ```{r}
+
   color<- c("red", "green", "blue")
   x<- sample(1:100,20,replace=T)
   y<- sample(1:100,20,replace=T)
@@ -24,7 +28,7 @@ data.made<- as.data.frame(rbind(x,y,att) )
 attach(data.made)
 plot(x, y, main="Scatterplot Example",
      xlab="Lat ", ylab="Long ", pch=att)
-
+write.csv(data.made, file="Example_Data")
 ```
 
 
