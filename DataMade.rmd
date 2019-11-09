@@ -17,18 +17,101 @@ Will need a dataset with an x, y, and another attribute
 
 Ill start with 20 points and then add more later
 
+This is for random data
+
 ```{r}
 
   color<- c("red", "green", "blue")
   x<- sample(1:100,20,replace=T)
   y<- sample(1:100,20,replace=T)
   att<- sample(color, 20, replace=T)  
-data.made<- as.data.frame(rbind(x,y,att) ) 
+data.made.random<- as.data.frame(rbind(x,y,att) ) 
 #to visulize the data
-attach(data.made)
+attach(data.made.random)
 plot(x, y, main="Scatterplot Example",
      xlab="Lat ", ylab="Long ", pch=att)
-write.csv(data.made, file="Example_Data")
+#write.csv(data.made.random, file="Example_Data_Random")
+```
+
+Random-Way 2
+```{r}
+
+  color<- c("red", "green", "blue")
+  x<- sample(1:100,20,replace=T)
+  y<- sample(1:100,20,replace=T)
+  att<- sample(color, 20, replace=T)  
+data.made.random<- cbind(x,y,att) 
+#to visulize the data
+
+plot(data.made.random[,1], data.made.random[,2], main="Random Scatterplot Example",
+     xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=data.made.random[,3])
+
+write.csv(data.made.mixed, file="Example_Data_Random")
 ```
 
 
+
+
+This is for (hopefully) cluped data. Im going to see if I can make it using sampling distributions. This is clumped regardless of attribute
+```{r}
+for(i in 1:20)
+        # 20 Samples
+        {
+            x1<- rnorm(n=i, mean=40 ,sd=5)
+            y1<- rnorm(n=i, mean=81 ,sd=9.7)
+        }
+
+
+color<- c("red", "green", "blue")
+att<- sample(color, 20, replace=T)
+data.made.clumped<- cbind(x1,y1,att) 
+plot(data.made.clumped[,1], data.made.clumped[,2], main="Clumped Scatterplot Example",
+     xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=data.made.clumped[,3])
+
+
+write.csv(data.made.clumped, file="Example_Data_Clumped")
+```
+random-8
+normal/uniform-7
+normal/beta-5
+if x or y is </> than, remove, do until 20 numbers
+
+
+Mixed TRY 2
+```{r}
+  x<- sample(1:100,8,replace=T)
+  y<- sample(1:100,8,replace=T)
+  data.made.pt1<- cbind(x,y,att="red")
+
+
+
+# normal/uniform-7
+ for(i in 1:7)
+        # 7 Samples
+        {
+            x<- rnorm(n=i, mean=40 ,sd=5)
+            y<- runif(i, min=0, max=100)
+        }
+
+  data.made.pt2<- cbind(x,y,att="blue")
+ 
+#normal/beta-5 
+  
+for(i in 1:5)
+        # 5 Samples
+        {
+            x<- rnorm(n=i, mean=65, sd=6)
+            y<- rbeta(n=i, 4,2)*100
+        }
+
+data.made.pt3<- cbind(x,y,att="green")
+
+
+data.made.mixed<- rbind(data.made.pt1, data.made.pt2, data.made.pt3)
+
+plot(data.made.mixed[,1], data.made.mixed[,2], main="Mixed Scatterplot Example",
+     xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=data.made.mixed[,3])
+
+write.csv(data.made.mixed, file="Example_Data_Mixed")
+
+```
