@@ -21,32 +21,32 @@ This is for random data
 
 ```{r}
 
-  color<- c("red", "green", "blue")
-  x<- sample(1:100,20,replace=T)
-  y<- sample(1:100,20,replace=T)
-  att<- sample(color, 20, replace=T)  
-data.made.random<- as.data.frame(rbind(x,y,att) ) 
+#  color<- c("red", "green", "blue")
+#  x<- sample(1:100,20,replace=T)
+#  y<- sample(1:100,20,replace=T)
+#  att<- sample(color, 20, replace=T)  
+#data.made.random<- as.data.frame(rbind(x,y,att) ) 
 #to visulize the data
-attach(data.made.random)
-plot(x, y, main="Scatterplot Example",
-     xlab="Lat ", ylab="Long ", pch=att)
-write.csv(data.made.random, file="Example_Data_Random")
+#attach(data.made.random)
+#plot(x, y, main="Scatterplot Example",
+#     xlab="Lat ", ylab="Long ", pch=att)
+#write.csv(data.made.random, file="Example_Data_Random")
 ```
 
 Random-Way 2
 ```{r}
 
-  color<- c("red", "green", "blue")
-  x<- sample(1:100,20,replace=T)
-  y<- sample(1:100,20,replace=T)
-  att<- sample(color, 20, replace=T)  
+color<- c("red", "green", "blue")
+x<- sample(1:100,20,replace=T)
+y<- sample(1:100,20,replace=T)
+att<- sample(color, 20, replace=T)  
 data.made.random<- cbind(x,y,att) 
 #to visulize the data
 
 plot(data.made.random[,1], data.made.random[,2], main="Random Scatterplot Example",
      xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=data.made.random[,3])
 
-write.csv(data.made.mixed, file="Example_Data_Random")
+write.csv(data.made.random, file="Example_Data_Random")
 ```
 
 
