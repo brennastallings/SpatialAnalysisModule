@@ -110,7 +110,7 @@ neighborhood30.listw <- nb2listw(neighborhood30, style="B")
 moran.test(e$att, neighborhood30.listw, alternative = "two.sided")
 ```
 why...
-
+ewrwe
 
 
 
