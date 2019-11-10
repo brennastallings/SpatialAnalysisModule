@@ -65,6 +65,12 @@ n
 as.numeric(n$att)
 ```
 
+```{r}
+u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Uniform")
+z <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+z
+as.numeric(z$att)
+```
 Let us start with Moran's I. This statistic uses a spatial weights matrix, the most common of which is an inverse distance matrix. You can always use a different weights matrix depending on the type of data you have. 
 
 First we must create the matrix. 
