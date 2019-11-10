@@ -22,6 +22,8 @@ We need a few packages
 ```{r}
 library(curl)
 library(ape) #you may need to install this package first
+library(spdep)
+library(ncf)
 ```
 
 
@@ -40,7 +42,20 @@ c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModu
 e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 e
 as.numeric(e$att)
+?plot
+plot(e$x, e$y)
 ```
+
+This is the data where everything is so very clumped
+```{r}
+v <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_ExtraClumped")
+w <- read.csv(v, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+w
+as.numeric(w$att)
+?plot
+plot(w$x, w$y)
+```
+
 
 This is for a dataset with different distributions
 ```{r}
@@ -73,13 +88,40 @@ Now we can calculate Moran's I using the ape package
 ```{r}
 #For random data
 Moran.I(d$att, inf.dists.invd)
-
+```
+```{r}
 #For clumped data
 Moran.I(e$att, inf.dists.inve)
-
-#For in between clumped and random data
-Moran.I
-
+?Moran.I
 ```
+```{r}
+#For in between clumped and random data
+Moran.I(n$att, inf.dists.invn)
+```
+Hmmm so it looks like none of our data is actually correlated spatially. The problem here is that we are not specifying any distance that define neighborhoods. If the data is plotted on a 100 by 100 mark plot, then we see obvious clumping of data. But if we have intervals of five, then the data no longer seems clumped. 
+
+Lets try using the spdep package instead using data = d
+```{r}
+#first we need to set up the weights matrix
+?mat2listw
+sample.metric.dists.inv.listw <-mat2listw(inf.dists.invd)
+?dnearneigh #creates distinct neighborhoods instead of continuous ones
+neighborhood30 <- dnearneigh(cbind(d$y, d$x), 0, 30)
+neighborhood30.listw <- nb2listw(neighborhood30, style="B")
+moran.test(d$att, sample.metric.dists.inv.listw, alternative = "two.sided")
+```
+CHALLENGE
+The Moran's I statistic standard deviate is negative which points to randomization of the data. Try playing with the neighborhood weights and see if this changes. What happens when neighborhood weigh is set 0 to 10. What happens when the neighhood weights are set from 0 to 1000. Why do you get these results. 
+
+Lets try seeing what happens with clumped data
+```{r}
+sample.metric.dists.inv.listw <-mat2listw(inf.dists.inve)
+neighborhood30 <- dnearneigh(cbind(e$y, e$x), 0, 10)
+neighborhood30.listw <- nb2listw(neighborhood30, style="B")
+moran.test(e$att, neighborhood30.listw, alternative = "two.sided")
+```
+why...
+ewrwe
+
 
 
