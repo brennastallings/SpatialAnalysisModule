@@ -18,6 +18,25 @@ First we must understand what statistics we will want to use in order to spatial
 https://crd150.github.io/lab5.html
 
 
+We will be using data created for this module, which is in the repository.
+To start we will pull in a dataset with a random distribution
+```{r}
+f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Random")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+d
+```
 
+This is the data where everything is clumped
+```{r}
+c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Clumped")
+e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+e
+```
 
+This is for a dataset with different distributions
+```{r}
+m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Mixed")
+n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+n
+```
 
