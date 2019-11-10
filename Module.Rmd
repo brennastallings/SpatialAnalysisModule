@@ -46,6 +46,17 @@ as.numeric(e$att)
 plot(e$x, e$y)
 ```
 
+This is the data where everything is so very clumped
+```{r}
+v <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_ExtraClumped")
+w <- read.csv(v, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+w
+as.numeric(w$att)
+?plot
+plot(w$x, w$y)
+```
+
+
 This is for a dataset with different distributions
 ```{r}
 m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Mixed")
