@@ -51,6 +51,7 @@ Now we will compute a join count analysis for the three tree species. Join count
 
 For join count analysis we need to create a grid of prescence and abscence from our tree data. 
 ```{r}
+<<<<<<< HEAD
 # Convert tree data to SpatialPointsDataFrame, both for entire dataset, and # for individual species. You will need the package pgirmess for this. 
 HTrees.spdf <- HTrees
 coordinates(HTrees.spdf) <- c("xsite", "ysite")
@@ -99,12 +100,18 @@ joincount.mc(as.factor(acru.rast@data@values), lwb, nsim = 999, alternative = "g
 # Can also compute these for the queen setup; for example, with the
 # permutation test:
 joincount.mc(as.factor(acru.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
+=======
+f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+d
+as.numeric(d$att) #for some reason our attribute data is character data so we need to convert it.
+>>>>>>> 6b6dbd91d56c55a2516514ade8def90ba0d7f860
 ```
 Now lets perform this test with some random data we created!
 
 This is the data where both points and attributes is clumped
 ```{r}
-c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Clumped")
+c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
 e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 e
 as.numeric(e$att)
@@ -162,7 +169,7 @@ plot(d$x, d$y)
 
 This is the data where attributes are mixed, but the data is clumped
 ```{r}
-v <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_ExtraClumped")
+v <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_ExtraClumped")
 w <- read.csv(v, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 w
 as.numeric(w$att)
@@ -171,12 +178,24 @@ plot(w$x, w$y)
 
 This is for a dataset with different distributions
 ```{r}
-m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Mixed")
+m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Mixed")
 n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 n
 as.numeric(n$att)
 plot(n$x, n$y)
 ```
 
+<<<<<<< HEAD
+=======
+This is for uniform data
+```{r}
+u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
+z <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+z
+as.numeric(z$att)
+```
+
+
+>>>>>>> 6b6dbd91d56c55a2516514ade8def90ba0d7f860
 
 s
