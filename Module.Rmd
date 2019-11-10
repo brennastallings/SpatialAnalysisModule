@@ -100,12 +100,12 @@ joincount.mc(as.factor(acru.rast@data@values), lwb, nsim = 999, alternative = "g
 # Can also compute these for the queen setup; for example, with the
 # permutation test:
 joincount.mc(as.factor(acru.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
-=======
+
 f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
 d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 d
 as.numeric(d$att) #for some reason our attribute data is character data so we need to convert it.
->>>>>>> 6b6dbd91d56c55a2516514ade8def90ba0d7f860
+
 ```
 Now lets perform this test with some random data we created!
 
