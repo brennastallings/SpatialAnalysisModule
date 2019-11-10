@@ -71,6 +71,30 @@ plot(data.made.clumped[,1], data.made.clumped[,2], main="Clumped Scatterplot Exa
 
 write.csv(data.made.clumped, file="Example_Data_Clumped")
 ```
+
+Extraclumped Data
+```{r}
+for(i in 1:20)
+        # 20 Samples
+        {
+            x<- rnorm(n=i, mean=40 ,sd=1)
+            y<- rnorm(n=i, mean=81 ,sd=1)
+        }
+
+
+color<- c("1", "2", "3")
+att<- sample(color, 20, replace=T)
+data.made.extraclumped<- cbind(x,y,att) 
+plot(data.made.extraclumped[,1], data.made.extraclumped[,2], main="Very Clumped Scatterplot Example",
+     xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=data.made.extraclumped[,3])
+
+
+write.csv(data.made.extraclumped, file="Example_Data_ExtraClumped")
+```
+
+
+
+
 random-8
 normal/uniform-7
 normal/beta-5
