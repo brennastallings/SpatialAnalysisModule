@@ -36,7 +36,7 @@ This is for random data
 Random-Way 2
 ```{r}
 
-color<- c("1", "2", "3")
+color<- c("1", "2")
 x<- sample(1:100,500,replace=T)
 y<- sample(1:100,500,replace=T)
 att<- sample(color, 20, replace=T)  
@@ -62,7 +62,7 @@ for(i in 1:500)
         }
 
 
-color<- c("1", "2", "3")
+color<- c("1", "2")
 att<- sample(color, 20, replace=T)
 data.made.clumped<- cbind(x,y,att) 
 plot(data.made.clumped[,1], data.made.clumped[,2], main="Clumped Scatterplot Example",
@@ -82,7 +82,7 @@ for(i in 1:500)
         }
 
 
-color<- c("1", "2", "3")
+color<- c("1", "2")
 att<- sample(color, 20, replace=T)
 data.made.extraclumped<- cbind(x,y,att) 
 plot(data.made.extraclumped[,1], data.made.extraclumped[,2], main="Very Clumped Scatterplot Example",
@@ -108,27 +108,16 @@ Mixed TRY 2
   data.made.pt1<- cbind(x,y,att="1")
 
 
-
-# normal/uniform-7
- for(i in 1:100)
-        # 7 Samples
-        {
-            x<- rnorm(n=i, mean=40 ,sd=5)
-            y<- runif(i, min=0, max=100)
-        }
-
-  data.made.pt2<- cbind(x,y,att="2")
- 
 #normal/beta-5 
   
-for(i in 1:100)
+for(i in 1:200)
         # 5 Samples
         {
             x<- rnorm(n=i, mean=65, sd=6)
             y<- rbeta(n=i, 4,2)*100
         }
 
-data.made.pt3<- cbind(x,y,att="3")
+data.made.pt3<- cbind(x,y,att="2")
 
 
 data.made.mixed<- rbind(data.made.pt1, data.made.pt2, data.made.pt3)
@@ -145,7 +134,7 @@ Making a uniform distribution
 x<- seq(0, 100, length.out = 5)
 x <- c(x,x,x,x)
 y<- c(0,0,0,0,0,25,25,25,25,25,50,50,50,50,50,75,75,75,75,75)
-att<- "3"  
+att<- "1"  
 data.made.unif<- cbind(x,y,att)
 plot(data.made.unif[,1], data.made.unif[,2], main="Uniform Scatterplot Example",
      xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=data.made.mixed[,3])
