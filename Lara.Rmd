@@ -1,0 +1,69 @@
+---
+title: "Spatial Autocorrelation"
+author: "Me"
+date: "November 4, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis. The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space. 
+When dealing with spatial data we must also considered that objects next to each other may have influence on one another. That is, objects in space are not, in fact indepdent, but are rather dependent and the intensity of dependencies varies by how close two objects or neighborhoods are to each other. The statistics must reflect this dependency and are the proccess of relating clustered values together is known as spatial autocorrelation. 
+First we must understand what statistics we will want to use in order to spatial autocorrelation. We will go over
+
+*Moran's I
+*Geary's C
+*Join Count
+*Getis Ord Gi and Gi star
+
+We need a few packages
+```{r}
+library(curl)
+library(ape) #you may need to install this package first
+```
+
+
+We will be using data created for this module, which is in the repository.
+To start we will pull in a dataset with a random distribution
+```{r}
+f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Random")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+d
+```
+
+This is the data where everything is clumped
+```{r}
+c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Clumped")
+e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+e
+```
+
+This is for a dataset with different distributions
+```{r}
+m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Mixed")
+n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+n
+```
+
+Let us start with Moran's I. This statistic uses a spatial weights matrix, the most common of which is an inverse distance matrix. 
+
+First we must create the matrix. 
+```{r}
+inf.dists <- as.matrix(dist(cbind(lon=d$x, lat=d$y)))
+inf.dists.inv <- 1/inf.dists
+diag(inf.dists.inv) <- 0 # we need the diagnol values to equal 0 for this matrix
+```
+
+Now we can calculate Moran's I using the ape package
+```{r}
+Moran.I(d$att, inf.dists.inv)
+?Moran.I
+```
+
+
+
+
+
+
