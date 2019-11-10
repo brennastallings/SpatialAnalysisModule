@@ -22,6 +22,8 @@ We need a few packages
 ```{r}
 library(curl)
 library(ape) #you may need to install this package first
+library(spdep)
+library(ncf)
 ```
 
 
@@ -40,6 +42,8 @@ c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModu
 e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 e
 as.numeric(e$att)
+?plot
+plot(e$x, e$y)
 ```
 
 This is for a dataset with different distributions
@@ -73,13 +77,20 @@ Now we can calculate Moran's I using the ape package
 ```{r}
 #For random data
 Moran.I(d$att, inf.dists.invd)
-
+```
+```{r}
 #For clumped data
 Moran.I(e$att, inf.dists.inve)
-
-#For in between clumped and random data
-Moran.I
-
+?Moran.I
 ```
+```{r}
+#For in between clumped and random data
+Moran.I(n$att, inf.dists.invn)
+```
+Hmmm so it looks like none of our data is actually correlated spatially. The problem here is that we are not specifying any distance that define neighborhoods. If the data is plotted on a 100 by 100 mark plot, then we see obvious clumping of data. But if we have intervals of five, then the data no longer seems clumped. 
+
+Idk man
+
+
 
 
