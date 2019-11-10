@@ -37,8 +37,8 @@ Random-Way 2
 ```{r}
 
 color<- c("1", "2", "3")
-x<- sample(1:100,20,replace=T)
-y<- sample(1:100,20,replace=T)
+x<- sample(1:100,500,replace=T)
+y<- sample(1:100,500,replace=T)
 att<- sample(color, 20, replace=T)  
 data.made.random<- cbind(x,y,att) 
 #to visulize the data
@@ -54,7 +54,7 @@ write.csv(data.made.random, file="Example_Data_Random")
 
 This is for (hopefully) cluped data. Im going to see if I can make it using sampling distributions. This is clumped regardless of attribute
 ```{r}
-for(i in 1:20)
+for(i in 1:500)
         # 20 Samples
         {
             x<- rnorm(n=i, mean=40 ,sd=5)
@@ -74,7 +74,7 @@ write.csv(data.made.clumped, file="Example_Data_Clumped")
 
 Extraclumped Data
 ```{r}
-for(i in 1:20)
+for(i in 1:500)
         # 20 Samples
         {
             x<- rnorm(n=i, mean=40 ,sd=1)
@@ -103,14 +103,14 @@ if x or y is </> than, remove, do until 20 numbers
 
 Mixed TRY 2
 ```{r}
-  x<- sample(1:100,8,replace=T)
-  y<- sample(1:100,8,replace=T)
+  x<- sample(1:100,300,replace=T)
+  y<- sample(1:100,300,replace=T)
   data.made.pt1<- cbind(x,y,att="1")
 
 
 
 # normal/uniform-7
- for(i in 1:7)
+ for(i in 1:100)
         # 7 Samples
         {
             x<- rnorm(n=i, mean=40 ,sd=5)
@@ -121,7 +121,7 @@ Mixed TRY 2
  
 #normal/beta-5 
   
-for(i in 1:5)
+for(i in 1:100)
         # 5 Samples
         {
             x<- rnorm(n=i, mean=65, sd=6)
