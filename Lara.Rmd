@@ -64,6 +64,6 @@ Moran.I(d$att, inf.dists.inv)
 
 
 
-jkhkj
+
 
 
