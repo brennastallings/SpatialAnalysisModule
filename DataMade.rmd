@@ -54,17 +54,23 @@ write.csv(data.made.random, file="Example_Data_Random")
 
 This is for (hopefully) cluped data. Im going to see if I can make it using sampling distributions. This is clumped regardless of attribute
 ```{r}
-for(i in 1:500)
+for(i in 1:250)
         # 20 Samples
         {
-            x<- rnorm(n=i, mean=40 ,sd=5)
-            y<- rnorm(n=i, mean=81 ,sd=9.7)
+            x1<- rnorm(n=i, mean=30 ,sd=3)
+            y1<- rnorm(n=i, mean=81 ,sd=5)
         }
+ pt1<- cbind(x1,y1,"1")
+for(i in 1:250)
+        # 20 Samples
+        {
+            x2<- rnorm(n=i, mean=60 ,sd=3)
+            y2<- rnorm(n=i, mean=20 ,sd=6.7)
+}
+ pt2<- cbind(x2,y2,"2")
 
 
-color<- c("1", "2")
-att<- sample(color, 20, replace=T)
-data.made.clumped<- cbind(x,y,att) 
+data.made.clumped<- rbind(pt1, pt2) 
 plot(data.made.clumped[,1], data.made.clumped[,2], main="Clumped Scatterplot Example",
      xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=data.made.clumped[,3])
 
