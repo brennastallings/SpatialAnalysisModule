@@ -118,10 +118,13 @@ write.csv(data.made.mixed, file="Example_Data_Mixed")
 
 Making a uniform distribution
 ```{r}
-color<- c("red", "green", "blue")
-x<- (1:100, by=50)
-y<- 
-att<- "blue"  
-data.made.unif<- cbind(x,y,att) 
+x<- seq(0, 100, length.out = 5)
+x <- c(x,x,x,x)
+y<- c(0,0,0,0,0,25,25,25,25,25,50,50,50,50,50,75,75,75,75,75)
+att<- "3"  
+data.made.unif<- cbind(x,y,att)
+plot(data.made.unif[,1], data.made.unif[,2], main="Uniform Scatterplot Example",
+     xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=data.made.mixed[,3])
+write.csv(data.made.unif, file="Example_Data_Uniform")
 ```
 
