@@ -31,6 +31,7 @@ To start we will pull in a dataset with a random distribution
 f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Random")
 d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 d
+as.numeric(d$att) #for some reason our attribute data is character data so we need to convert it.
 ```
 
 This is the data where everything is clumped
@@ -38,6 +39,7 @@ This is the data where everything is clumped
 c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Clumped")
 e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 e
+as.numeric(e$att)
 ```
 
 This is for a dataset with different distributions
@@ -45,25 +47,39 @@ This is for a dataset with different distributions
 m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Mixed")
 n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 n
+as.numeric(n$att)
 ```
 
-Let us start with Moran's I. This statistic uses a spatial weights matrix, the most common of which is an inverse distance matrix. 
+Let us start with Moran's I. This statistic uses a spatial weights matrix, the most common of which is an inverse distance matrix. You can always use a different weights matrix depending on the type of data you have. 
 
 First we must create the matrix. 
 ```{r}
-inf.dists <- as.matrix(dist(cbind(lon=d$x, lat=d$y)))
-inf.dists.inv <- 1/inf.dists
-diag(inf.dists.inv) <- 0 # we need the diagnol values to equal 0 for this matrix
+inf.distsd <- as.matrix(dist(cbind(lon=d$x, lat=d$y)))
+inf.dists.invd <- 1/inf.dists
+diag(inf.dists.invd) <- 0 # we need the diagnol values to equal 0 for this matrix
+
+#repeat for our other two datasets
+inf.distse <- as.matrix(dist(cbind(lon=e$x, lat=e$y)))
+inf.dists.inve <- 1/inf.dists
+diag(inf.dists.inve) <- 0 
+
+inf.distsn <- as.matrix(dist(cbind(lon=n$x, lat=n$y)))
+inf.dists.invn <- 1/inf.dists
+diag(inf.dists.invn) <- 0 
+
 ```
 
 Now we can calculate Moran's I using the ape package
 ```{r}
-Moran.I(d$att, inf.dists.inv)
-?Moran.I
+#For random data
+Moran.I(d$att, inf.dists.invd)
+
+#For clumped data
+Moran.I(e$att, inf.dists.inve)
+
+#For in between clumped and random data
+Moran.I
+
 ```
-
-
-
-jkhkj
 
 
