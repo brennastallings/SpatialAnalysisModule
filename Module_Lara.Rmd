@@ -9,14 +9,32 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Topics
+-What is spatial autocorrelation
+-What is important when calculating statistics for autocorrelation
+  -Distance between points (defining neighborhoods and distance bands)
+  -Data type (character versus continuous)
+  -Spatial scale: local versus global
+  -All objects are related spatially, but closer objects are more closely related
+  -Distribution types (clustered, uniform, random)
+-What are the different statistics and what are each used for?
+-Join Count statics
+-Moran's I (global) and Local Moran's I
+-Geary C
+-G statistics
+
+
 Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis. The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space. 
 When dealing with spatial data we must also considered that objects next to each other may have influence on one another. That is, objects in space are not, in fact indepdent, but are rather dependent and the intensity of dependencies varies by how close two objects or neighborhoods are to each other. The statistics must reflect this dependency and are the proccess of relating clustered values together is known as spatial autocorrelation. 
 First we must understand what statistics we will want to use in order to spatial autocorrelation. We will go over
 
 *Join Count Analysis 
 *Moran's I
-*Geary's C
-*Getis Ord Gi and Gi star
+*Local Moran's I
+*Geary C
+*G and G star local spatial statistics 
+
+We will also explain global versus local statistics. 
 
 We need a few packages
 ```{r}
@@ -97,4 +115,36 @@ joincount.mc(as.factor(acru.rast@data@values), lwb.queen, nsim = 999, alternativ
 ```
 Now lets break this methodology down so that we can apply it to our own data for join count statistics. 
 
+While join count statistics is powerful for prescence/abscence and character attributes, most of the time ecology deals with continuous data and many variables. Statics such as Moran's I and Geary's C are often used for to calculate spatial autocorrelation. Using the Harvard Forest example, we can calculate both statistics by taking a subset of the tree data for a species. 
+
+```{r}
+# Use the function 'sample' to get random sample of points; this is done on 
+# a SpatialPointsDataFrame , but could also be run on a regular dataframe 
+acru.sample <- acru.spdf[sample(1:nrow(acru.spdf), 300, replace = FALSE), ] 
+# plot(acru.sample) #plot if you want to see waht the random sample of data # looks like
+
+```
+
+We will use the package spdep. We can use other packages for these statistics, but spdep allows for more customization, espeically for distance bands. Distance bands are important as they allow you to define neighborhoods. In ecology these distance bands can include how far an animal can travel, or perhaps how far a pollutant can travel in a body of water before it's toxicity disipates. 
+
+Moran's I
+```{r}
+acru.moran <- correlog(coordinates(acru.sample), acru.sample$dbh91, method = "Moran", nbclass = NULL, alternative = "two.sided")
+# Can view the textual results by simply typing 'acru.moran' 
+plot(acru.moran) #plots the results
+```
+
+Geary C
+```{r}
+acru.geary <- correlog(coordinates(acru.sample), acru.sample$dbh91, method = "Geary", alternative = "two.sided")
+plot(acru.geary)
+```
+
+Local Moran's I
+```{r}
+acru.rast.count <-rasterize(acru.spdf, r, fun=function(x,...)length(x))[[1]]
+plot(MoranLocal(acru.rast.count))
+```
+
+Now we will look at Get Ord General G statistics. The statistical tests before have told us if our data is clustered, whether like values are within a similar region. Now we want to know where hot and cold spots occur. hot and cold spots are areas where values are high and low. This is particularly useful with continous data where you have a gradient of different values. 
 
