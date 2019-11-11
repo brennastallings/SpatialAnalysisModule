@@ -23,20 +23,93 @@ We need a few packages
 library(curl)
 library(ape) #you may need to install this package first
 library(spdep)
-library(ncf)
+library(raster)
+library(pgirmess)
 ```
 
-
-We will be using data created for this module, which is in the repository.
-To start we will pull in a dataset with a random distribution
+Let's load in a data set. This data set is about the spatial location and attributes of different tree species in teh Harvard Forest. 
 ```{r}
+HTrees <- read.csv("http://harvardforest.fas.harvard.edu/data/p03/hf032/hf032-01-tree.csv")
+head(HTrees)
+HTrees
+```
+Now lets look at some species
+```{r}
+# Create subset of data for Acer rubrum
+acru <- subset(HTrees, species == "ACRU" & dbh91 != "NA", select = c("xsite", "ysite", "dbh91"))
+# Create subset of data for Prunus serotina
+plot(acru$xsite, acru$ysite)
+prse <- subset(HTrees, species == "PRSE" & dbh91 != "NA", select = c("xsite", "ysite", "dbh91"))
+# Create subset of data for Pinus strobus
+plot(prse$xsite, prse$ysite)
+pist <- subset(HTrees, species == "PIST" & dbh91 != "NA", select = c("xsite", "ysite", "dbh91"))
+plot(pist$xsite, pist$ysite)
+```
+We will be looking at three tree species. Each subset of data needs an x and y coordinate as well as an attribute that we will be measuring. In this case the attribute is diameter to breast height. 
+
+Now we will compute a join count analysis for the three tree species. Join count analysis looks at spatial clustering of two character variables such as prescence or abscence data. It can also be used for data such as defining clustering between republican versus democratic voting states for example. 
+
+For join count analysis we need to create a grid of prescence and abscence from our tree data. 
+```{r}
+<<<<<<< HEAD
+# Convert tree data to SpatialPointsDataFrame, both for entire dataset, and # for individual species. You will need the package pgirmess for this. 
+HTrees.spdf <- HTrees
+coordinates(HTrees.spdf) <- c("xsite", "ysite")
+pist.spdf <- pist
+coordinates(pist.spdf) <- c("xsite", "ysite")
+acru.spdf <- acru
+coordinates(acru.spdf) <- c("xsite", "ysite")
+prse.spdf <- prse
+coordinates(prse.spdf) <- c("xsite", "ysite")
+
+#Define the extent for the join count analyses
+jc.extent <- extent(-300,100,-700,-200)
+#set up a blank raster
+r <- raster(nrows=25, ncols=20, ext=jc.extent)
+
+acru.rast<-rasterize(acru.spdf, r, field = 1)
+acru.rast[is.na(acru.rast)] <- 0
+# You can plot the result
+plot(acru.rast)
+# You can plot the points on top of the raster to verify it is correct
+# Remember - we only made the raster for a subset of the data, so there will # be points in a larger area than the raster covers
+plot(acru.spdf, add = TRUE)
+
+# Generate neighbors list - the function is 'cell2nb' and the arguments are
+# the number of rows and colums in your grid; you can simply get those
+# characteristics from your any of your rasters using 'nrow' and 'ncol'
+# commands, nested in the cell2nb function (as ilustrated below). Note, the
+# default for this is 'rook', but you can change the join counts to 'queen'
+# by adding the argument 'type='queen'.
+nb <- cell2nb(nrow = nrow(acru.rast), ncol = ncol(acru.rast))
+# To calculate neighbors for queen configuration
+nb.queen <- cell2nb(nrow = nrow(acru.rast), ncol = ncol(acru.rast), type = "queen")
+# Convert the neighbors list to a 'weights' list; again, this will be the
+# same for all species we are analyzing. You an follow the example below
+# using 'style='B' (as a Binary weights matrix). Again, calculate this for
+# the queen setup as well as the default (rook) setup.
+lwb <- nb2listw(nb, style = "B")
+lwb.queen <- nb2listw(nb.queen, style = "B")
+
+# First, the regular join count test for Acer rubrum (Testing the hypothesis
+# of aggregation among like categories; add the argument 'alternative='less'
+# to reverse this)
+joincount.test(as.factor(acru.rast@data@values), lwb, alternative = "greater") # Second, the permutation-based join count test; similar to above, and you
+# can adjust the number of simulations with the 'nsim' argument
+joincount.mc(as.factor(acru.rast@data@values), lwb, nsim = 999, alternative = "greater")
+# Can also compute these for the queen setup; for example, with the
+# permutation test:
+joincount.mc(as.factor(acru.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
+
 f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
 d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 d
 as.numeric(d$att) #for some reason our attribute data is character data so we need to convert it.
-```
 
-This is the data where everything is clumped
+```
+Now lets perform this test with some random data we created!
+
+This is the data where both points and attributes is clumped
 ```{r}
 c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
 e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
@@ -44,18 +117,64 @@ e
 as.numeric(e$att)
 ?plot
 plot(e$x, e$y)
+e.spdf <- e
+head(e.spdf)
+coordinates(e.spdf) <- c("x1", "y1") #as you can see we already have spatial data
+
+jc.extent <- extent(0,100,0,100)
+#set up a blank raster
+r <- raster(nrows=25, ncols=20, ext=jc.extent)
+
+e.rast<-rasterize(e.spdf, r, field = 1)
+e.rast[is.na(e.rast)] <- 0
+# You can plot the result
+plot(e.rast)
+# You can plot the points on top of the raster to verify it is correct
+# Remember - we only made the raster for a subset of the data, so there will # be points in a larger area than the raster covers
+plot(e.spdf, add = TRUE)
+
+nb <- cell2nb(nrow = nrow(e.rast), ncol = ncol(e.rast))
+# To calculate neighbors for queen configuration
+nb.queen <- cell2nb(nrow = nrow(e.rast), ncol = ncol(e.rast), type = "queen")
+# Convert the neighbors list to a 'weights' list; again, this will be the
+# same for all species we are analyzing. You an follow the example below
+# using 'style='B' (as a Binary weights matrix). Again, calculate this for
+# the queen setup as well as the default (rook) setup.
+lwb <- nb2listw(nb, style = "B")
+lwb.queen <- nb2listw(nb.queen, style = "B")
+
+# First, the regular join count test for Acer rubrum (Testing the hypothesis
+# of aggregation among like categories; add the argument 'alternative='less'
+# to reverse this)
+joincount.test(as.factor(e.rast@data@values), lwb, alternative = "greater") # Second, the permutation-based join count test; similar to above, and you
+# can adjust the number of simulations with the 'nsim' argument
+joincount.mc(as.factor(e.rast@data@values), lwb, nsim = 999, alternative = "greater")
+# Can also compute these for the queen setup; for example, with the
+# permutation test:
+joincount.mc(as.factor(e.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
 
-This is the data where everything is so very clumped
+
+
+We will be using data created for this module, which is in the repository.
+To start we will pull in a dataset with a random distribution
+```{r}
+f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Random")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+d
+as.numeric(d$att) #for some reason our attribute data is character data so we need to convert it.
+plot(d$x, d$y)
+
+```
+
+This is the data where attributes are mixed, but the data is clumped
 ```{r}
 v <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_ExtraClumped")
 w <- read.csv(v, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 w
 as.numeric(w$att)
-?plot
 plot(w$x, w$y)
 ```
-
 
 This is for a dataset with different distributions
 ```{r}
@@ -63,8 +182,11 @@ m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModu
 n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 n
 as.numeric(n$att)
+plot(n$x, n$y)
 ```
 
+<<<<<<< HEAD
+=======
 This is for uniform data
 ```{r}
 u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
@@ -72,63 +194,8 @@ z <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 z
 as.numeric(z$att)
 ```
-Let us start with Moran's I. This statistic uses a spatial weights matrix, the most common of which is an inverse distance matrix. You can always use a different weights matrix depending on the type of data you have. 
-
-First we must create the matrix. 
-```{r}
-inf.distsd <- as.matrix(dist(cbind(lon=d$x, lat=d$y)))
-inf.dists.invd <- 1/inf.dists
-diag(inf.dists.invd) <- 0 # we need the diagnol values to equal 0 for this matrix
-
-#repeat for our other two datasets
-inf.distse <- as.matrix(dist(cbind(lon=e$x, lat=e$y)))
-inf.dists.inve <- 1/inf.dists
-diag(inf.dists.inve) <- 0 
-
-inf.distsn <- as.matrix(dist(cbind(lon=n$x, lat=n$y)))
-inf.dists.invn <- 1/inf.dists
-diag(inf.dists.invn) <- 0 
-
-```
-
-Now we can calculate Moran's I using the ape package
-```{r}
-#For random data
-Moran.I(d$att, inf.dists.invd)
-```
-```{r}
-#For clumped data
-Moran.I(e$att, inf.dists.inve)
-?Moran.I
-```
-```{r}
-#For in between clumped and random data
-Moran.I(n$att, inf.dists.invn)
-```
-Hmmm so it looks like none of our data is actually correlated spatially. The problem here is that we are not specifying any distance that define neighborhoods. If the data is plotted on a 100 by 100 mark plot, then we see obvious clumping of data. But if we have intervals of five, then the data no longer seems clumped. 
-
-Lets try using the spdep package instead using data = d
-```{r}
-#first we need to set up the weights matrix
-?mat2listw
-sample.metric.dists.inv.listw <-mat2listw(inf.dists.invd)
-?dnearneigh #creates distinct neighborhoods instead of continuous ones
-neighborhood30 <- dnearneigh(cbind(d$y, d$x), 0, 30)
-neighborhood30.listw <- nb2listw(neighborhood30, style="B")
-moran.test(d$att, sample.metric.dists.inv.listw, alternative = "two.sided")
-```
-CHALLENGE
-The Moran's I statistic standard deviate is negative which points to randomization of the data. Try playing with the neighborhood weights and see if this changes. What happens when neighborhood weigh is set 0 to 10. What happens when the neighhood weights are set from 0 to 1000. Why do you get these results. 
-
-Lets try seeing what happens with clumped data
-```{r}
-sample.metric.dists.inv.listw <-mat2listw(inf.dists.inve)
-neighborhood30 <- dnearneigh(cbind(e$y, e$x), 0, 10)
-neighborhood30.listw <- nb2listw(neighborhood30, style="B")
-moran.test(e$att, neighborhood30.listw, alternative = "two.sided")
-```
-why...
-ewrwe
 
 
+>>>>>>> 6b6dbd91d56c55a2516514ade8def90ba0d7f860
 
+sdsfsd
