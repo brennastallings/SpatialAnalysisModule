@@ -18,10 +18,23 @@ Topics
   -All objects are related spatially, but closer objects are more closely related
   -Distribution types (clustered, uniform, random)
 -What are the different statistics and what are each used for?
+-Rasterizing your data
 -Join Count statics
+  -Chess moves, how this statistics work
+  -Rasterize/display data
+  -Calculate the statistic
 -Moran's I (global) and Local Moran's I
+  -Example of distributions???
+  -calculate statistic
+  -display
 -Geary C
+  -Example of distributions???
+  -calculate statistic
+  -display
 -G statistics
+  -Example of distributions???
+  -calculate statistic
+  -display
 
 
 Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis. The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space. 
@@ -44,6 +57,7 @@ library(spdep) #for spatial autocorrelation
 library(ncf)
 library(raster)
 library(pgirmess) #to create your raster grid cells
+
 ```
 
 Let us start with join count analysis. This type of analysis looks at sets of data that have character attributes and spatial location. Character attributes can include prescence/abscence data as well as characterizations such blue versus red states. Join count statistics can tell you whether your data is clumped, randomly dispersed, or uniformly dispersed. Join count statistics are typically used when dealing with polygons rather than points. 
