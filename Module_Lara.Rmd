@@ -19,6 +19,7 @@ Topics
   -Distribution types (clustered, uniform, random)
 -What are the different statistics and what are each used for?
 -Rasterizing your data
+  -Matrix types: Inverse distance weighting
 -Join Count statics
   -Chess moves, how this statistics work
   -Rasterize/display data
@@ -35,6 +36,9 @@ Topics
   -Example of distributions???
   -calculate statistic
   -display
+-Next steps
+  -Kriging and data modeling
+  -GWR
 
 
 Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis. The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space. 
