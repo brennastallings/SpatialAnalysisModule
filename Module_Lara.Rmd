@@ -10,13 +10,33 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Topics
--What is spatial autocorrelation
+When talking about anything spatial we need to consider that variables are in fact NOT independent of each other. Not only do different variables have an effect on each other, a single variable may affect different points in space. Closer points are more related to each other than points further away and therefore closer points have greater influence on each other. Spatial autocorrelation is therefore "the correlation between the values of a single variable that is strictly due to the proximity of these values in geographical space by introducing a deviation from the assumption of independent observations of classical statistics (Griffith, 2003)."
+<https://cran.r-project.org/web/packages/lctools/vignettes/SpatialAutocorrelation.pdf>
+In order to access this correlation we need to understand how the features or objects with the variable are related to each other. In other words, we need a way to describe using statistics the spatial distribution of objects with one or more attributes.
+
+There are a few statistics used to assess patterns and spatial relations of objects. We will cover the most common types of statistics used for spatial autocorrelation in this module. 
+
+*Join Count Statistics
+*Global Moran's I
+*Local Moran's I
+*Geary's C
+*Local G
+*Local Gstar (maybe if I can find something for this)
+
+In general there are three patterns that the above statistics can distinguish between
+
+*clustered, clumped, or patchy
+*Uniform or even distribution
+*Random distribution (no discernable pattern)
+
+
 -What is important when calculating statistics for autocorrelation
   -Distance between points (defining neighborhoods and distance bands)
   -Data type (character versus continuous)
   -Spatial scale: local versus global
   -All objects are related spatially, but closer objects are more closely related
   -Distribution types (clustered, uniform, random)
+  
 -What are the different statistics and what are each used for?
 -Rasterizing your data
   -Matrix types: Inverse distance weighting
@@ -39,19 +59,12 @@ Topics
 -Next steps
   -Kriging and data modeling
   -GWR
-
+-Citations
 
 Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis. The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space. 
 When dealing with spatial data we must also considered that objects next to each other may have influence on one another. That is, objects in space are not, in fact indepdent, but are rather dependent and the intensity of dependencies varies by how close two objects or neighborhoods are to each other. The statistics must reflect this dependency and are the proccess of relating clustered values together is known as spatial autocorrelation. 
 First we must understand what statistics we will want to use in order to spatial autocorrelation. We will go over
 
-*Join Count Analysis 
-*Moran's I
-*Local Moran's I
-*Geary C
-*G and G star local spatial statistics 
-
-We will also explain global versus local statistics. 
 
 We need a few packages
 ```{r}
@@ -164,5 +177,5 @@ acru.rast.count <-rasterize(acru.spdf, r, fun=function(x,...)length(x))[[1]]
 plot(MoranLocal(acru.rast.count))
 ```
 
-Now we will look at Get Ord General G statistics. The statistical tests before have told us if our data is clustered, whether like values are within a similar region. Now we want to know where hot and cold spots occur. hot and cold spots are areas where values are high and low. This is particularly useful with continous data where you have a gradient of different values. 
+Now we will look at Get Ord General G and G star statistics. The statistical tests before have told us if our data is clustered, whether like values are within a similar region. Now we want to know where hot and cold spots occur. hot and cold spots are areas where values are high and low. This is particularly useful with continous data where you have a gradient of different values. 
 
