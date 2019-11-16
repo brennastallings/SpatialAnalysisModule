@@ -1,0 +1,181 @@
+---
+title: "Spatial Autocorrelation"
+author: "Me"
+date: "November 4, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Topics
+When talking about anything spatial we need to consider that variables are in fact NOT independent of each other. Not only do different variables have an effect on each other, a single variable may affect different points in space. Closer points are more related to each other than points further away and therefore closer points have greater influence on each other. Spatial autocorrelation is therefore "the correlation between the values of a single variable that is strictly due to the proximity of these values in geographical space by introducing a deviation from the assumption of independent observations of classical statistics (Griffith, 2003)."
+<https://cran.r-project.org/web/packages/lctools/vignettes/SpatialAutocorrelation.pdf>
+In order to access this correlation we need to understand how the features or objects with the variable are related to each other. In other words, we need a way to describe using statistics the spatial distribution of objects with one or more attributes.
+
+There are a few statistics used to assess patterns and spatial relations of objects. We will cover the most common types of statistics used for spatial autocorrelation in this module. 
+
+*Join Count Statistics
+*Global Moran's I
+*Local Moran's I
+*Geary's C
+*Local G
+*Local Gstar (maybe if I can find something for this)
+
+In general there are three patterns that the above statistics can distinguish between
+
+*clustered, clumped, or patchy
+*Uniform or even distribution
+*Random distribution (no discernable pattern)
+
+
+-What is important when calculating statistics for autocorrelation
+  -Distance between points (defining neighborhoods and distance bands)
+  -Data type (character versus continuous)
+  -Spatial scale: local versus global
+  -All objects are related spatially, but closer objects are more closely related
+  -Distribution types (clustered, uniform, random)
+  
+-What are the different statistics and what are each used for?
+-Rasterizing your data
+  -Matrix types: Inverse distance weighting
+-Join Count statics
+  -Chess moves, how this statistics work
+  -Rasterize/display data
+  -Calculate the statistic
+-Moran's I (global) and Local Moran's I
+  -Example of distributions???
+  -calculate statistic
+  -display
+-Geary C
+  -Example of distributions???
+  -calculate statistic
+  -display
+-G statistics
+  -Example of distributions???
+  -calculate statistic
+  -display
+-Next steps
+  -Kriging and data modeling
+  -GWR
+-Citations
+
+Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis. The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space. 
+When dealing with spatial data we must also considered that objects next to each other may have influence on one another. That is, objects in space are not, in fact indepdent, but are rather dependent and the intensity of dependencies varies by how close two objects or neighborhoods are to each other. The statistics must reflect this dependency and are the proccess of relating clustered values together is known as spatial autocorrelation. 
+First we must understand what statistics we will want to use in order to spatial autocorrelation. We will go over
+
+
+We need a few packages
+```{r}
+library(curl)
+library(ape) #you may need to install this package first
+library(spdep) #for spatial autocorrelation
+library(ncf)
+library(raster)
+library(pgirmess) #to create your raster grid cells
+
+```
+
+Let us start with join count analysis. This type of analysis looks at sets of data that have character attributes and spatial location. Character attributes can include prescence/abscence data as well as characterizations such blue versus red states. Join count statistics can tell you whether your data is clumped, randomly dispersed, or uniformly dispersed. Join count statistics are typically used when dealing with polygons rather than points. 
+
+First we need some data. We will use tree data from Harvard to start and then apply this methodology to our own data that we created. We will look at the distributions of three different tree species. 
+
+```{r}
+HTrees <- read.csv("http://harvardforest.fas.harvard.edu/data/p03/hf032/hf032-01-tree.csv")
+```
+
+Next we need to create a raster for our data. A raster is essentially a grid, which is made up of cells. Cells can be any size that you define and can impact the spatial resolution of your data. Be careful when you define your raster size as the size may be dependent on the type of data you have and the data limitations. 
+
+```{r}
+# Create subset of data for Acer rubrum
+acru <- subset(HTrees, species == "ACRU" & dbh91 != "NA", select = c("xsite", "ysite", "dbh91"))
+# Create subset of data for Prunus serotina
+prse <- subset(HTrees, species == "PRSE" & dbh91 != "NA", select = c("xsite", "ysite", "dbh91"))
+# Create subset of data for Pinus strobus
+pist <- subset(HTrees, species == "PIST" & dbh91 != "NA", select = c("xsite", "ysite", "dbh91"))
+
+# Convert tree data to SpatialPointsDataFrame, both for entire dataset, and # for individual species
+HTrees.spdf <- HTrees
+coordinates(HTrees.spdf) <- c("xsite", "ysite")
+pist.spdf <- pist
+coordinates(pist.spdf) <- c("xsite", "ysite")
+acru.spdf <- acru
+coordinates(acru.spdf) <- c("xsite", "ysite")
+prse.spdf <- prse
+coordinates(prse.spdf) <- c("xsite", "ysite")
+
+#Define the extent for the join count analyses
+jc.extent <- extent(-300,100,-700,-200)
+#set up a blank raster
+r <- raster(nrows=25, ncols=20, ext=jc.extent)
+
+acru.rast<-rasterize(acru.spdf, r, field = 1)
+acru.rast[is.na(acru.rast)] <- 0
+# You can plot the result
+plot(acru.rast)
+# You can plot the points on top of the raster to verify it is correct
+# Remember - we only mae the raster for a subset of the data, so there will # be points in a larger area than the raster covers
+plot(acru.spdf, add = TRUE)
+
+# Generate neighbors list - the function is 'cell2nb' and the arguments are
+# the number of rows and colums in your grid; you can simply get those
+# characteristics from your any of your rasters using 'nrow' and 'ncol'
+# commands, nested in the cell2nb function (as ilustrated below). Note, the
+# default for this is 'rook', but you can change the join counts to 'queen'
+# by adding the argument 'type='queen'.
+nb <- cell2nb(nrow = nrow(acru.rast), ncol = ncol(acru.rast))
+# To calculate neighbors for queen configuration
+nb.queen <- cell2nb(nrow = nrow(acru.rast), ncol = ncol(acru.rast), type = "queen")
+# Convert the neighbors list to a 'weights' list; again, this will be the
+# same for all species we are analyzing. You an follow the example below
+# using 'style='B' (as a Binary weights matrix). Again, calculate this for
+# the queen setup as well as the default (rook) setup.
+lwb <- nb2listw(nb, style = "B")
+lwb.queen <- nb2listw(nb.queen, style = "B")
+
+# First, the regular join count test for Acer rubrum (Testing the hypothesis
+# of aggregation among like categories; add the argument 'alternative='less'
+# to reverse this)
+joincount.test(as.factor(acru.rast@data@values), lwb, alternative = "greater") # Second, the permutation-based jon count test; similar to above, and you
+# can adjust the number of simulations with the 'nsim' argument
+joincount.mc(as.factor(acru.rast@data@values), lwb, nsim = 999, alternative = "greater")
+# Can also compute these for the queen setup; for example, with the
+# permutation test:
+joincount.mc(as.factor(acru.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
+```
+Now lets break this methodology down so that we can apply it to our own data for join count statistics. 
+
+While join count statistics is powerful for prescence/abscence and character attributes, most of the time ecology deals with continuous data and many variables. Statics such as Moran's I and Geary's C are often used for to calculate spatial autocorrelation. Using the Harvard Forest example, we can calculate both statistics by taking a subset of the tree data for a species. 
+
+```{r}
+# Use the function 'sample' to get random sample of points; this is done on 
+# a SpatialPointsDataFrame , but could also be run on a regular dataframe 
+acru.sample <- acru.spdf[sample(1:nrow(acru.spdf), 300, replace = FALSE), ] 
+# plot(acru.sample) #plot if you want to see waht the random sample of data # looks like
+
+```
+
+We will use the package spdep. We can use other packages for these statistics, but spdep allows for more customization, espeically for distance bands. Distance bands are important as they allow you to define neighborhoods. In ecology these distance bands can include how far an animal can travel, or perhaps how far a pollutant can travel in a body of water before it's toxicity disipates. 
+
+Moran's I
+```{r}
+acru.moran <- correlog(coordinates(acru.sample), acru.sample$dbh91, method = "Moran", nbclass = NULL, alternative = "two.sided")
+# Can view the textual results by simply typing 'acru.moran' 
+plot(acru.moran) #plots the results
+```
+
+Geary C
+```{r}
+acru.geary <- correlog(coordinates(acru.sample), acru.sample$dbh91, method = "Geary", alternative = "two.sided")
+plot(acru.geary)
+```
+
+Local Moran's I
+```{r}
+acru.rast.count <-rasterize(acru.spdf, r, fun=function(x,...)length(x))[[1]]
+plot(MoranLocal(acru.rast.count))
+```
+
+Now we will look at Get Ord General G and G star statistics. The statistical tests before have told us if our data is clustered, whether like values are within a similar region. Now we want to know where hot and cold spots occur. hot and cold spots are areas where values are high and low. This is particularly useful with continous data where you have a gradient of different values. 
+
