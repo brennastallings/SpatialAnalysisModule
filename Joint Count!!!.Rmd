@@ -1,0 +1,36 @@
+---
+title: "Joint Count!!!!!!!"
+author: "Greg Pelose"
+date: "11/10/2019"
+output: html_document
+---
+
+Install packages
+```{r}
+library("curl")
+```
+```{r}
+install.packages("spdep")
+```
+```{r}
+library(spdep)
+```
+```{r}
+install.packages("raster")
+```
+
+
+Downloading data
+```{r}
+m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Clumped")
+n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+n
+```
+
+```{r}
+HTrees <- read.csv("http://harvardforest.fas.harvard.edu/data/p03/hf032/hf032-01-tree.csv")
+head(HTrees)
+str(HTrees)
+summary(HTrees)
+```
+
