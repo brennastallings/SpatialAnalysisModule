@@ -30,7 +30,7 @@ library(ncf)
 We will be using data created for this module, which is in the repository.
 To start we will pull in a dataset with a random distribution
 ```{r}
-f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Random")
+f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
 d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 d
 as.numeric(d$att) #for some reason our attribute data is character data so we need to convert it.
@@ -38,7 +38,7 @@ as.numeric(d$att) #for some reason our attribute data is character data so we ne
 
 This is the data where everything is clumped
 ```{r}
-c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Clumped")
+c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
 e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 e
 as.numeric(e$att)
@@ -48,7 +48,7 @@ plot(e$x, e$y)
 
 This is the data where everything is so very clumped
 ```{r}
-v <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_ExtraClumped")
+v <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_ExtraClumped")
 w <- read.csv(v, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 w
 as.numeric(w$att)
@@ -59,12 +59,19 @@ plot(w$x, w$y)
 
 This is for a dataset with different distributions
 ```{r}
-m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Example_Data_Mixed")
+m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Mixed")
 n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 n
 as.numeric(n$att)
 ```
 
+This is for uniform data
+```{r}
+u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
+z <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+z
+as.numeric(z$att)
+```
 Let us start with Moran's I. This statistic uses a spatial weights matrix, the most common of which is an inverse distance matrix. You can always use a different weights matrix depending on the type of data you have. 
 
 First we must create the matrix. 
