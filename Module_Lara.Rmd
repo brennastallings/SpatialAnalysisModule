@@ -121,30 +121,6 @@ plot(neighbors.q, xy, col='red', lwd=2, add=T)
 ```
 **Add rook v queen here
 
-For now ignore all below until next title
-#What are Weight Counts? And is impolite to ask?
-
-First we need to call in our clumped data
-```{r}
-c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
-e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
-e
-plot(e[,2], e[,3], main="Clumped Data Example",
-     xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=e[,4])
-```
-First we want to make a distance matrix and inverse distance matrix
-I dont want to do this with 500 points, so I am going to cut it down to 5 for now
-```{r}
-library(dplyr)
-library(raster)
-e.small<- sample_n(e[2:3], size=50, replace=F)
-e.dis<- pointDistance(e.small, lonlat=F)
-#make the  matrix
-w<- 1/e.dis
-```
-
-Inverse distance matricies and distance weighting assume that points that are closer togther are more statistically significant.
-
 
 #Lets talk about Rasterization
 vectors vs Rasters
@@ -317,12 +293,46 @@ acru.rast.count <-rasterize(acru.spdf, r, fun=function(x,...)length(x))[[1]]
 plot(MoranLocal(acru.rast.count))
 ```
 
+
+
+Now we will look at Get Ord General G and G star statistics. The statistical tests before have told us if our data is clustered, whether like values are within a similar region. Now we want to know where hot and cold spots occur. hot and cold spots are areas where values are high and low. This is particularly useful with continous data where you have a gradient of different values. 
+
+
+#What are Weight Counts? And is impolite to ask?
+
+First we need to call in our clumped data
+```{r}
+c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
+e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+e
+plot(e[,2], e[,3], main="Clumped Data Example",
+     xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=e[,4])
+```
+First we want to make a distance matrix and inverse distance matrix
+I dont want to do this with 500 points, so I am going to cut it down to 5 for now
+```{r}
+library(dplyr)
+library(raster)
+e.small<- sample_n(e[2:3], size=50, replace=F)
+e.dis<- pointDistance(e.small, lonlat=F)
+#make the  matrix
+w<- 1/e.dis
+```
+
+Inverse distance matricies and distance weighting assume that points that are closer togther are more statistically significant.
+
 **This is me trying interpolation- The 2 plots have different levels of effect across points, making smoother, or less smooth images
+You can also use the data that is already collected to interpolate across to areas for which you have no data.We will use the example from the tree data, though it is admittedly a strange example, as trees dont cover entire areas. 
 ```{r}
 #first the data we have-this is our original raster for the acru trees
 plot(acru.spdf, col=acru.spdf$dbh91)
-g<- ggplot(data=acru, aes(x=xsite, y=ysite))+geom_tile(mapping= aes(fill=acru.spdf$dbh91))+ scale_fill_gradient(low="blue", high="yellow")
+g<- ggplot(data=acru, aes(x=xsite, y=ysite))
++ geom_tile(mapping= aes(fill=acru.spdf$dbh91))
++ scale_fill_gradient(low="blue", high="yellow")
 g
+```
+Now that we have seen/remembered what our raster looks like, we will interpolate our data to the surrounding areas. This will use the data we have and use distance weighting in the background to casue closer points to have more effect on an interpolated point than farther points.
+```{r}
 #Then we will interpolate over the whole area
 #First we make a new grid to put the data in
 grid.new<-as.data.frame(spsample(acru.spdf ,"regular", n=500))
@@ -353,10 +363,6 @@ plot(P.idw)
 
 ##this code works but not sure if is the best way to show it
 ```
-
-Now we will look at Get Ord General G and G star statistics. The statistical tests before have told us if our data is clustered, whether like values are within a similar region. Now we want to know where hot and cold spots occur. hot and cold spots are areas where values are high and low. This is particularly useful with continous data where you have a gradient of different values. 
-
-
 
 
 
