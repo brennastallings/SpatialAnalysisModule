@@ -69,6 +69,7 @@ First we must understand what statistics we will want to use in order to spatial
 
 We need a few packages
 ```{r}
+
 library(curl)
 library(ape) #you may need to install this package first
 library(spdep) #for spatial autocorrelation
@@ -144,7 +145,7 @@ plot(random.rast)
 talk about neighborhoods
 
 
-#Lets play with stats now!
+#Come on kids, Lets play with stats now!
 
 Let us start with join count analysis. This type of analysis looks at sets of data that have character attributes and spatial location. Character attributes can include prescence/abscence data as well as characterizations such as blue versus red states. Join count statistics can tell you whether your data is clumped, randomly dispersed, or uniformly dispersed. Join count statistics are typically used when dealing with polygons rather than points. 
 
