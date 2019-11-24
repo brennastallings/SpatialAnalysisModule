@@ -76,6 +76,7 @@ library(ncf)
 library(raster)
 library(pgirmess) #to create your raster grid cells
 library(gstat)
+library(dismo)
 ```
 
 
@@ -85,7 +86,7 @@ library(gstat)
 One way to look at spatial data is to look at polygons which help visualize nearest neighbors. One type of polygon is the priximity polygon, or Voronoi polygon, which has each polygon surrounding the area of an object or point.
 
 ```{r}
-library(dismo)
+
 poly2<- voronoi(d)
 plot(poly2)
 
