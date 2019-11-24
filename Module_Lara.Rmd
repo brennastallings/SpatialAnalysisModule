@@ -64,7 +64,7 @@ Local G
 
 Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis. The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space. 
 When dealing with spatial data we must also considered that objects next to each other may have influence on one another. That is, objects in space are not, in fact indepdent, but are rather dependent and the intensity of dependencies varies by how close two objects or neighborhoods are to each other. The statistics must reflect this dependency and are the proccess of relating clustered values together is known as spatial autocorrelation. 
-First we must understand what statistics we will want to use in order to spatial autocorrelation. We will go over
+First we must understand what statistics we will want to use in order to spatial autocorrelation. 
 
 
 We need a few packages
@@ -76,18 +76,51 @@ library(spdep) #for spatial autocorrelation
 library(ncf)
 library(raster)
 library(pgirmess) #to create your raster grid cells
-
+library(gstat)
 ```
 
-#What are Weight Counts? And is impolite to ask?
+
+
+
+
+One way to look at spatial data is to look at polygons which help visualize nearest neighbors. One type of polygon is the priximity polygon, or Voronoi polygon, which has each polygon surrounding the area of an object or point.
+
+```{r}
+library(dismo)
+poly2<- voronoi(d)
+plot(poly2)
+
+poly<-voronoi(e)
+plot(poly)
+
+poly3<- voronoi(v)
+plot(poly3)
+
+```
 
 
 pkg 'raster', raster to polygon
 
-converting to inverse distance matrix and weighting
+To convert raster data to polygon data, we can use the package 'spdep', which we will continue to use throughout the module. There is another package, 'ape' which can do a few statistics, but spdep is much more robust so we will use it instead.
 
-'cdep' package
-can use ape, but ape only dose Moran's I, so its not v useful
+This is done with simple data and also allows us to look at how neighbors can be visualized, with rook or queen setups.
+```{r}
+poly.made <-rasterToPolygons(acru.rast, fun=NULL, n=4)
+plot(poly.made)
+neighbors.r<- poly2nb(poly.made, queen=F)
+
+plot(poly.made, col='grey', border='blue')
+xy<-coordinates(poly.made)
+plot(neighbors.r, xy, col='red', lwd=2, add=T)
+#since this is a polygon of squares everything is connected to everything. I would like a different example
+
+neighbors.q<- poly2nb(poly.made, queen=T)
+
+plot(poly.made, col='grey', border='blue')
+xy<-coordinates(poly.made)
+plot(neighbors.q, xy, col='red', lwd=2, add=T)
+```
+**Add rook v queen here
 
 
 #Lets talk about Rasterization
@@ -141,8 +174,22 @@ random.rast<-rasterize(random.spdf, r, field = 1)
 random.rast[is.na(random.rast)] <- 0
 plot(random.rast)
 ```
+
+Once data is rasterized, you can identify cells that are connected, using the clump function, and can identify the edges, or transitions, between cell values.
+```{r}
+rand.clump<-clump(random.rast)
+plot(rand.clump)
+clump.clump<- clump(clumped.rast)
+plot(clump.clump)
+```
+The boundaries are cells that have more than 1 class in the cells around them
+```{r}
+plot(boundaries(clumped.rast, classes=T))
+```
+
 #local v Global
-talk about neighborhoods
+One thing to keep in mind with all the stats that we will be using is the difference between local and global stats and what they are calculating. Many of the functions we will be usding can calculate either one, but you need to know which one you want.
+Global tests look for clustering withing your entire dataset, while local stats can distinguish clustering in smaller subsections, working at a smaller scale.  
 
 
 #Come on kids, Lets play with stats now!
@@ -226,7 +273,7 @@ acru.sample <- acru.spdf[sample(1:nrow(acru.spdf), 300, replace = FALSE), ]
 
 ```
 
-We will use the package spdep. We can use other packages for these statistics, but spdep allows for more customization, espeically for distance bands. Distance bands are important as they allow you to define neighborhoods. In ecology these distance bands can include how far an animal can travel, or perhaps how far a pollutant can travel in a body of water before it's toxicity disipates. 
+We will use the package spdep. We can use other packages for these statistics, but spdep allows for more customization, espeically for distance bands. Distance bands are important as they allow you to define neighborhoods, which determine how far from a point its value will affect other values. In ecology these distance bands can include how far an animal can travel, or perhaps how far a pollutant can travel in a body of water before it's toxicity disipates. 
 
 Moran's I
 ```{r}
@@ -247,13 +294,80 @@ acru.rast.count <-rasterize(acru.spdf, r, fun=function(x,...)length(x))[[1]]
 plot(MoranLocal(acru.rast.count))
 ```
 
+
+
 Now we will look at Get Ord General G and G star statistics. The statistical tests before have told us if our data is clustered, whether like values are within a similar region. Now we want to know where hot and cold spots occur. hot and cold spots are areas where values are high and low. This is particularly useful with continous data where you have a gradient of different values. 
 
 
+#What are Weight Counts? And is impolite to ask?
+
+First we need to call in our clumped data
+```{r}
+c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
+e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+e
+plot(e[,2], e[,3], main="Clumped Data Example",
+     xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=e[,4])
+```
+First we want to make a distance matrix and inverse distance matrix
+I dont want to do this with 500 points, so I am going to cut it down to 5 for now
+```{r}
+library(dplyr)
+library(raster)
+e.small<- sample_n(e[2:3], size=50, replace=F)
+e.dis<- pointDistance(e.small, lonlat=F)
+#make the  matrix
+w<- 1/e.dis
+```
+
+Inverse distance matricies and distance weighting assume that points that are closer togther are more statistically significant.
+
+**This is me trying interpolation- The 2 plots have different levels of effect across points, making smoother, or less smooth images
+You can also use the data that is already collected to interpolate across to areas for which you have no data.We will use the example from the tree data, though it is admittedly a strange example, as trees dont cover entire areas. 
+```{r}
+#first the data we have-this is our original raster for the acru trees
+plot(acru.spdf, col=acru.spdf$dbh91)
+g<- ggplot(data=acru, aes(x=xsite, y=ysite))
++ geom_tile(mapping= aes(fill=acru.spdf$dbh91))
++ scale_fill_gradient(low="blue", high="yellow")
+g
+```
+Now that we have seen/remembered what our raster looks like, we will interpolate our data to the surrounding areas. This will use the data we have and use distance weighting in the background to casue closer points to have more effect on an interpolated point than farther points.
+```{r}
+#Then we will interpolate over the whole area
+#First we make a new grid to put the data in
+grid.new<-as.data.frame(spsample(acru.spdf ,"regular", n=500))
+names(grid.new)       <- c("X", "Y")
+coordinates(grid.new) <- c("X", "Y")
+gridded(grid.new)     <- TRUE  # Create SpatialPixel object
+fullgrid(grid.new)
+#This is the actual interpolation, tell it what to interpolate
+#This first one has the least smoothing
+P.orig.idw <- gstat::idw(dbh91 ~ 1, acru.spdf, newdata=grid.new, idp=3.0)
+#power values range between 1-3 with a smaller number creating a smoother surface (stronger influence from surrounding points) and a larger number creating a surface that is more true to the actual data and in turn a less smooth surface potentially
+plot(P.orig.idw)
+
+#then interpolation
+grid<-as.data.frame(spsample(acru.spdf ,"regular", n=500))
+names(grid)       <- c("X", "Y")
+coordinates(grid) <- c("X", "Y")
+gridded(grid)     <- TRUE  # Create SpatialPixel object
+fullgrid(grid)    <- TRUE  # Create SpatialGrid object
+# Add P's projection information to the empty grid
+proj4string(grid) <- proj4string(acru.spdf)
+
+# Interpolate the grid cells using a power value of 1 (idp=.0)
+#This has the most smoothing
+P.idw <- gstat::idw(dbh91 ~ 1, acru.spdf, newdata=grid, idp=1.0)
+
+plot(P.idw)
+
+##this code works but not sure if is the best way to show it
+```
 
 
 
-This will need to be moved later, but here is the data for the original data
+**This will need to be moved later, but here is the data for the original data
 We will be using data created for this module, which is in the repository.
 To start we will pull in a dataset with a random distribution
 ```{r}
@@ -302,6 +416,7 @@ plot(random.moran) #plots the results
 random.geary <- correlog(coordinates(random.spdf), d$att, method = "Geary", alternative = "two.sided")
 plot(random.geary)
 ```
+
 
 
 
@@ -406,7 +521,7 @@ plot(v_clumped.geary)
 This is for a dataset with uniform distributions
 ```{r}
 u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
-v <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+v <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 v
 ```
 Rasterize
