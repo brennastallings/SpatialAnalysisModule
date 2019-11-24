@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Topics
+
 When talking about anything spatial we need to consider that variables are in fact NOT independent of each other. Not only do different variables have an effect on each other, a single variable may affect different points in space. Closer points are more related to each other than points further away and therefore closer points have greater influence on each other. Spatial autocorrelation is therefore "the correlation between the values of a single variable that is strictly due to the proximity of these values in geographical space by introducing a deviation from the assumption of independent observations of classical statistics (Griffith, 2003)."
 <https://cran.r-project.org/web/packages/lctools/vignettes/SpatialAutocorrelation.pdf>
 In order to access this correlation we need to understand how the features or objects with the variable are related to each other. In other words, we need a way to describe using statistics the spatial distribution of objects with one or more attributes.
@@ -64,8 +65,6 @@ Local G
 
 Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis. The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space. 
 When dealing with spatial data we must also considered that objects next to each other may have influence on one another. That is, objects in space are not, in fact indepdent, but are rather dependent and the intensity of dependencies varies by how close two objects or neighborhoods are to each other. The statistics must reflect this dependency and are the proccess of relating clustered values together is known as spatial autocorrelation. 
-First we must understand what statistics we will want to use in order to spatial autocorrelation. 
-
 
 We need a few packages
 ```{r}
@@ -79,30 +78,35 @@ library(pgirmess) #to create your raster grid cells
 library(gstat)
 library(dismo)
 ```
+
 This is us pulling in all the data that we will need in this module
+Let us pull in our example data sets
 ```{r}
 #Random Data
 f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
 d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+plot(d$x, d$y)
 #Clumped Data
 c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
 e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+plot(e$x, e$y)
 #Very Clumped Data
 m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_ExtraClumped")
 n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+plot(n$x, n$y)
 #Uniform Data
 u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
 v <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+plot(v$x, v$y)
 
 #We will use tree data from Harvard to start and then apply this methodology to our own data that we created. We will look at the distributions of three different tree species. 
-
 HTrees <- read.csv("http://harvardforest.fas.harvard.edu/data/p03/hf032/hf032-01-tree.csv")
-
 ```
 
-```
 
-One way to look at spatial data is to look at polygons which help visualize nearest neighbors. One type of polygon is the priximity polygon, or Voronoi polygon, which has each polygon surrounding the area of an object or point.
+Before we get started, you should know the two different data types that GIS spatial statistics can analyze. Vectors and Rasters. Vectors are continous sets of data that contain polygos, lines, and/or point data. Rasters on the other hand are images made up of pixels, with each pixel having a single corresponding value. Spatial autocorrelation can be performed on both polygon data and raster data, but the majority of packages for spatial statistics require you to have a raster data set. 
+
+For point data you can convert to either raster or a polygon. The point to polygon transformation can be particularly useful. Polygons help visualize nearest neighbors. One type of polygon is the priximity polygon, or Voronoi polygon, which has each polygon surrounding the area of an object or point.
 
 
 ```{r}
@@ -116,9 +120,6 @@ poly3<- voronoi(v)
 plot(poly3)
 
 ```
-
-
-pkg 'raster', raster to polygon
 
 To convert raster data to polygon data, we can use the package 'spdep', which we will continue to use throughout the module. There is another package, 'ape' which can do a few statistics, but spdep is much more robust so we will use it instead.
 
