@@ -2,7 +2,11 @@
 title: "Spatial Autocorrelation"
 author: "Me"
 date: "November 4, 2019"
-output: html_document
+output: 
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
 ---
 
 ```{r setup, include=FALSE}
