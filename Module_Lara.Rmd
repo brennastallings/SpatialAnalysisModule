@@ -100,7 +100,6 @@ plot(v$x, v$y)
 #real data from Harvard forest on tree distributions. 
 HTrees <- read.csv("http://harvardforest.fas.harvard.edu/data/p03/hf032/hf032-01-tree.csv")
 ```
-```
 
 Before we get started, you should know the two different data types that GIS spatial statistics can analyze. Vectors and Rasters. Vectors are continous sets of data that contain polygos, lines, and/or point data. Rasters on the other hand are images made up of pixels, with each pixel having a single corresponding value. Spatial autocorrelation can be performed on both polygon data and raster data, but the majority of packages for spatial statistics require you to have a raster data set. 
 
