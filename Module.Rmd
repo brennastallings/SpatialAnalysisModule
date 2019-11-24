@@ -9,631 +9,126 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Topics
-
-When talking about anything spatial we need to consider that variables are in fact NOT independent of each other. Not only do different variables have an effect on each other, a single variable may affect different points in space. Closer points are more related to each other than points further away and therefore closer points have greater influence on each other. Spatial autocorrelation is therefore "the correlation between the values of a single variable that is strictly due to the proximity of these values in geographical space by introducing a deviation from the assumption of independent observations of classical statistics (Griffith, 2003)."
-<https://cran.r-project.org/web/packages/lctools/vignettes/SpatialAutocorrelation.pdf>
-In order to access this correlation we need to understand how the features or objects with the variable are related to each other. In other words, we need a way to describe using statistics the spatial distribution of objects with one or more attributes.
-
-There are a few statistics used to assess patterns and spatial relations of objects. We will cover the most common types of statistics used for spatial autocorrelation in this module. 
-
-*Join Count Statistics
-*Global Moran's I
-*Local Moran's I
-*Geary's C
-*Local G
-*Local Gstar (maybe if I can find something for this)
-
-In general there are three patterns that the above statistics can distinguish between
-
-*clustered, clumped, or patchy
-*Uniform or even distribution
-*Random distribution (no discernable pattern)
-
-
--What is important when calculating statistics for autocorrelation
-  -Distance between points (defining neighborhoods and distance bands)
-  -Data type (character versus continuous)
-  -Spatial scale: local versus global
-  -All objects are related spatially, but closer objects are more closely related
-  -Distribution types (clustered, uniform, random)
-  
--What are the different statistics and what are each used for?
--Rasterizing your data
-  -Matrix types: Inverse distance weighting
--Join Count statics
-  -Chess moves, how this statistics work
-  -Rasterize/display data
-  -Calculate the statistic
--Moran's I (global) and Local Moran's I
-  -Example of distributions???
-  -calculate statistic
-  -display
--Geary C
-  -Example of distributions???
-  -calculate statistic
-  -display
--G statistics
-  -Example of distributions???
-  -calculate statistic
-  -display
-Local G
--Next steps
-  -Kriging and data modeling
-  -GWR
--Citations
-
 Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis. The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space. 
 When dealing with spatial data we must also considered that objects next to each other may have influence on one another. That is, objects in space are not, in fact indepdent, but are rather dependent and the intensity of dependencies varies by how close two objects or neighborhoods are to each other. The statistics must reflect this dependency and are the proccess of relating clustered values together is known as spatial autocorrelation. 
+First we must understand what statistics we will want to use in order to spatial autocorrelation. We will go over
+
+*Moran's I
+*Geary's C
+*Join Count
+*Getis Ord Gi and Gi star
 
 We need a few packages
 ```{r}
-
 library(curl)
 library(ape) #you may need to install this package first
-library(spdep) #for spatial autocorrelation
+library(spdep)
 library(ncf)
-library(raster)
-library(pgirmess) #to create your raster grid cells
-library(gstat)
-library(dismo)
-```
-
-This is us pulling in all the data that we will need in this module
-Let us pull in our example data sets
-```{r}
-#Random Data
-f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
-d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
-plot(d$x, d$y)
-#Clumped Data
-c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
-e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
-plot(e$x, e$y)
-#Very Clumped Data
-m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_ExtraClumped")
-n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
-plot(n$x, n$y)
-#Uniform Data
-u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
-v <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
-plot(v$x, v$y)
-
-#We will use tree data from Harvard to start and then apply this methodology to our own data that we created. We will look at the distributions of three different tree species. 
-HTrees <- read.csv("http://harvardforest.fas.harvard.edu/data/p03/hf032/hf032-01-tree.csv")
 ```
 
 
-Before we get started, you should know the two different data types that GIS spatial statistics can analyze. Vectors and Rasters. Vectors are continous sets of data that contain polygos, lines, and/or point data. Rasters on the other hand are images made up of pixels, with each pixel having a single corresponding value. Spatial autocorrelation can be performed on both polygon data and raster data, but the majority of packages for spatial statistics require you to have a raster data set. 
-
-For point data you can convert to either raster or a polygon. The point to polygon transformation can be particularly useful. Polygons help visualize nearest neighbors. One type of polygon is the priximity polygon, or Voronoi polygon, which has each polygon surrounding the area of an object or point.
-
-
-```{r}
-poly2<- voronoi(d)
-plot(poly2)
-
-poly<-voronoi(e)
-plot(poly)
-
-poly3<- voronoi(v)
-plot(poly3)
-
-```
-
-To convert raster data to polygon data, we can use the package 'spdep', which we will continue to use throughout the module. There is another package, 'ape' which can do a few statistics, but spdep is much more robust so we will use it instead.
-
-This is done with simple data and also allows us to look at how neighbors can be visualized, with rook or queen setups.
-```{r}
-# Create subset of data for Acer rubrum
-acru <- subset(HTrees, species == "ACRU" & dbh91 != "NA", select = c("xsite", "ysite", "dbh91"))
-# Convert tree data to SpatialPointsDataFrame, both for entire dataset, and # for individual species
-HTrees.spdf <- HTrees
-coordinates(HTrees.spdf) <- c("xsite", "ysite")
-acru.spdf <- acru
-coordinates(acru.spdf) <- c("xsite", "ysite")
-#Define the extent for the join count analyses
-jc.extent <- extent(-300,100,-700,-200)
-#set up a blank raster
-r <- raster(nrows=25, ncols=20, ext=jc.extent)
-acru.rast<-rasterize(acru.spdf, r, field = 1)
-acru.rast[is.na(acru.rast)] <- 0
-# You can plot the result
-plot(acru.rast)
-```
-
-```{r}
-poly.made <-rasterToPolygons(acru.rast, fun=NULL, n=4)
-plot(poly.made)
-neighbors.r<- poly2nb(poly.made, queen=F)
-
-plot(poly.made, col='grey', border='blue')
-xy<-coordinates(poly.made)
-plot(neighbors.r, xy, col='red', lwd=2, add=T)
-#since this is a polygon of squares everything is connected to everything. I would like a different example
-
-neighbors.q<- poly2nb(poly.made, queen=T)
-
-plot(poly.made, col='grey', border='blue')
-xy<-coordinates(poly.made)
-plot(neighbors.q, xy, col='red', lwd=2, add=T)
-```
-**Add rook v queen here
-
-
-#Lets talk about Rasterization
-vectors vs Rasters
-There are 2 main types of data that can be used with spatial data, call vectors and rasters. Vector data is when the data is used as points, lines, and polygons, such as our orginal data, which is stored as points. We then convert the data to raster format for our statistics.
-The main pros of using polygon data is that it is more spatially accurate. The polygons can be created to fit the data, and uses smaller fie/storage size. However, vector data doesnt work well with continuous data. 
-
-Raster data uses a matrix of cells to represent the data, using either categorical or continuous variables. It works better than polygons for continuous data such as elevation and temperature. Raster data can be used in a few ways. The data can be assumed to exist at the center of the cell or across the whole cell. Raster data is useful for remote sensing data as well as continuous data. It also has a standard cell size across the area, chech can make calculations much easier. You need to pay attention to and carefully consider cell size for rasters. Picking the wrong size of cells can lead to pixelation of data and loss of information, while using a very small cell size can make the file size unweildy.  
-![Example for Raster size importance](Images/raster_ex.jpg)
-
-
-We will be using raster data for a couple of reasons. The main ones being that some of the packages that we use in this modlue need raster data to work, so we have no choice, and that it makes you learn how to convert between the data types. 
-
-First let us look at a simple dataset of 500 points that we created to mimic spatial data.Each point has x and y values, which represent a longitude and latitude, and an attribute, which we will use later. This data was made to be randomly distributed. 
-```{r echo=F}
-plot(d[,2], d[,3], main="Random Scatterplot Example",
-     xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100))
-```
-
-The first thing we will need to do is rasterize our data, which turns our point data into the cellular data. 
-We will change this to a raster data set using the package 'spdf'
-```{r}
-#First we get the needed columns from the data into a new format for the package
-random.spdf <- cbind(d$x,d$y)
-#Next we define the extent, or size, of the plot the data is found in
-jc.extent <- extent(0,100,0,100)
-# Then we set up a blank raster, which we will then put the data into
-r <- raster(nrows=100, ncols=100, ext=jc.extent)
-#Then we assign the data to the raster
-random.rast<-rasterize(random.spdf, r, field = 1)
-random.rast[is.na(random.rast)] <- 0
-```
-
-You can plot the result, and the green squares are the cells in the rater that have points
-```{r echo=F}
-plot(random.rast)
-```
-As in the picture we showed earlier, changing the size of cells in the raster changes the pixelation of the output, this one with a cell size of 3.3 x 3.3 pixels instead of 1 x 1 pixels in the first
-```{r}
-#First we get the needed columns from the data into a new format for the package
-random.spdf <- cbind(d$x,d$y)
-
-#Next we define the extent, or size, of the plot the data is found in
-jc.extent <- extent(0,100,0,100)
-# Then we set up a blank raster, which we will then put the data into
-r <- raster(nrows=30, ncols=30, ext=jc.extent)
-#Then we assign the data to the raster
-random.rast<-rasterize(random.spdf, r, field = 1)
-random.rast[is.na(random.rast)] <- 0
-plot(random.rast)
-```
-
-Once data is rasterized, you can identify cells that are connected, using the clump function, and can identify the edges, or transitions, between cell values.
-```{r}
-rand.clump<-clump(random.rast)
-plot(rand.clump)
-clump.clump<- clump(clumped.rast)
-plot(clump.clump)
-```
-The boundaries are cells that have more than 1 class in the cells around them
-```{r}
-plot(boundaries(clumped.rast, classes=T))
-```
-
-#local v Global
-One thing to keep in mind with all the stats that we will be using is the difference between local and global stats and what they are calculating. Many of the functions we will be usding can calculate either one, but you need to know which one you want.
-Global tests look for clustering withing your entire dataset, while local stats can distinguish clustering in smaller subsections, working at a smaller scale.  
-
-
-#Come on kids, Lets play with stats now!
-
-Let us start with join count analysis. This type of analysis looks at sets of data that have character attributes and spatial location. Character attributes can include prescence/abscence data as well as characterizations such as blue versus red states. Join count statistics can tell you whether your data is clumped, randomly dispersed, or uniformly dispersed. Join count statistics are typically used when dealing with polygons rather than points. 
-
-
-Next we need to create a raster for our data. A raster is essentially a grid, which is made up of cells. Cells can be any size that you define and can impact the spatial resolution of your data. Be careful when you define your raster size as the size may be dependent on the type of data you have and the data limitations. 
-
-```{r}
-# Create subset of data for Acer rubrum
-acru <- subset(HTrees, species == "ACRU" & dbh91 != "NA", select = c("xsite", "ysite", "dbh91"))
-
-
-# Convert tree data to SpatialPointsDataFrame, both for entire dataset, and # for individual species
-HTrees.spdf <- HTrees
-coordinates(HTrees.spdf) <- c("xsite", "ysite")
-acru.spdf <- acru
-coordinates(acru.spdf) <- c("xsite", "ysite")
-
-
-#Define the extent for the join count analyses
-jc.extent <- extent(-300,100,-700,-200)
-#set up a blank raster
-r <- raster(nrows=25, ncols=20, ext=jc.extent)
-
-acru.rast<-rasterize(acru.spdf, r, field = 1)
-acru.rast[is.na(acru.rast)] <- 0
-# You can plot the result
-plot(acru.rast)
-# You can plot the points on top of the raster to verify it is correct
-# Remember - we only mae the raster for a subset of the data, so there will be points in a larger area than the raster covers
-plot(acru.spdf, add = TRUE)
-
-# Generate neighbors list - the function is 'cell2nb' and the arguments are
-# the number of rows and colums in your grid; you can simply get those
-# characteristics from your any of your rasters using 'nrow' and 'ncol'
-# commands, nested in the cell2nb function (as ilustrated below). Note, the
-# default for this is 'rook', but you can change the join counts to 'queen'
-# by adding the argument 'type='queen'.
-nb <- cell2nb(nrow = nrow(acru.rast), ncol = ncol(acru.rast))
-# To calculate neighbors for queen configuration
-nb.queen <- cell2nb(nrow = nrow(acru.rast), ncol = ncol(acru.rast), type = "queen")
-# Convert the neighbors list to a 'weights' list; again, this will be the
-# same for all species we are analyzing. You an follow the example below
-# using 'style='B' (as a Binary weights matrix). Again, calculate this for
-# the queen setup as well as the default (rook) setup.
-lwb <- nb2listw(nb, style = "B")
-lwb.queen <- nb2listw(nb.queen, style = "B")
-
-# First, the regular join count test for Acer rubrum (Testing the hypothesis
-# of aggregation among like categories; add the argument 'alternative='less'
-# to reverse this)
-joincount.test(as.factor(acru.rast@data@values), lwb, alternative = "greater") # Second, the permutation-based jon count test; similar to above, and you
-# can adjust the number of simulations with the 'nsim' argument
-joincount.mc(as.factor(acru.rast@data@values), lwb, nsim = 999, alternative = "greater")
-# Can also compute these for the queen setup; for example, with the
-# permutation test:
-joincount.mc(as.factor(acru.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
-```
-Now lets break this methodology down so that we can apply it to our own data for join count statistics. 
 We will be using data created for this module, which is in the repository.
 To start we will pull in a dataset with a random distribution
 ```{r}
+f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 d
-```
-This is to rasterize the data
-```{r}
-random.spdf <- cbind(d$x,d$y)
-
-#Define the extent for the join count analyses
-jc.extent <- extent(0,100,0,100)
-#set up a blank raster
-r <- raster(nrows=100, ncols=100, ext=jc.extent)
-
-random.rast<-rasterize(random.spdf, r, field = 1)
-random.rast[is.na(random.rast)] <- 0
-# You can plot the result
-plot(random.rast)
-# You can plot the points on top of the raster 
-plot(random.spdf, add = TRUE)
-
-# Generate neighbors list 
-nb <- cell2nb(nrow = nrow(random.rast), ncol = ncol(random.rast))
-# To calculate neighbors for queen configuration
-nb.queen <- cell2nb(nrow = nrow(random.rast), ncol = ncol(random.rast), type = "queen")
-# Convert the neighbors list to a 'weights' list;
-lwb <- nb2listw(nb, style = "B")
-lwb.queen <- nb2listw(nb.queen, style = "B")
-
-# First, the regular join count test for random data (Testing the hypothesis
-# of aggregation among like categories; add the argument 'alternative='less'
-# to reverse this)
-joincount.test(as.factor(random.rast@data@values), lwb, alternative = "greater")
-# Second, the permutation-based jon count test; similar to above, and you
-# can adjust the number of simulations with the 'nsim' argument
-joincount.mc(as.factor(random.rast@data@values), lwb, nsim = 999, alternative = "greater")
-# Can also compute these for the queen setup; for example, with the
-# permutation test:
-joincount.mc(as.factor(random.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
+as.numeric(d$att) #for some reason our attribute data is character data so we need to convert it.
 ```
 
 This is the data where everything is clumped
 ```{r}
-e
-```
-Rasterization
-```{r echo=F}
-clumped.spdf <- cbind(e$x,e$y)
-
-#Define the extent for the join count analyses
-jc.extent <- extent(0,100,0,100)
-#set up a blank raster
-r <- raster(nrows=100, ncols=100, ext=jc.extent)
-
-clumped.rast<-rasterize(clumped.spdf, r, field = 1)
-clumped.rast[is.na(clumped.rast)] <- 0
-```
-```{r}
-# You can plot the result
-plot(clumped.rast)
-# You can plot the points on top of the raster 
-plot(clumped.spdf, add = TRUE)
-```
-```{r echo=F}
-# Generate neighbors list 
-nb <- cell2nb(nrow = nrow(clumped.rast), ncol = ncol(clumped.rast))
-# To calculate neighbors for queen configuration
-nb.queen <- cell2nb(nrow = nrow(clumped.rast), ncol = ncol(clumped.rast), type = "queen")
-# Convert the neighbors list to a 'weights' list;
-lwb <- nb2listw(nb, style = "B")
-lwb.queen <- nb2listw(nb.queen, style = "B")
-#join Counts
-joincount.test(as.factor(clumped.rast@data@values), lwb, alternative = "greater")
-# Second, the permutation-based jon count test; similar to above, and you
-# can adjust the number of simulations with the 'nsim' argument
-joincount.mc(as.factor(clumped.rast@data@values), lwb, nsim = 999, alternative = "greater")
-# Can also compute these for the queen setup; for example, with the
-# permutation test:
-joincount.mc(as.factor(clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
-```
-
-This is for a dataset with different distributions
-```{r}
-n
-```
-```{r echo=F}
-#Rasterize
-v_clumped.spdf <- cbind(n$x,n$y)
-
-#Define the extent for the join count analyses
-jc.extent <- extent(0,100,0,100)
-#set up a blank raster
-r <- raster(nrows=100, ncols=100, ext=jc.extent)
-
-v_clumped.rast<-rasterize(v_clumped.spdf, r, field = 1)
-v_clumped.rast[is.na(v_clumped.rast)] <- 0
-```
-```{r}
-# You can plot the result
-plot(v_clumped.rast)
-# You can plot the points on top of the raster 
-plot(v_clumped.spdf, add = TRUE)
-```
-```{r echo=F}
-# Generate neighbors list 
-nb <- cell2nb(nrow = nrow(v_clumped.rast), ncol = ncol(v_clumped.rast))
-# To calculate neighbors for queen configuration
-nb.queen <- cell2nb(nrow = nrow(v_clumped.rast), ncol = ncol(v_clumped.rast), type = "queen")
-# Convert the neighbors list to a 'weights' list;
-lwb <- nb2listw(nb, style = "B")
-lwb.queen <- nb2listw(nb.queen, style = "B")
-```
-```{r}
-#join Counts
-joincount.test(as.factor(v_clumped.rast@data@values), lwb, alternative = "greater")
-# Second, the permutation-based jon count test; similar to above, and you
-# can adjust the number of simulations with the 'nsim' argument
-joincount.mc(as.factor(v_clumped.rast@data@values), lwb, nsim = 999, alternative = "greater")
-# Can also compute these for the queen setup; for example, with the
-# permutation test:
-joincount.mc(as.factor(v_clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
-```
-This is uniformly distributed data
-```{r}
-v
-```
-Rasterize
-```{r echo=F}
-unif.spdf <- cbind(v$x,v$y)
-
-#Define the extent for the join count analyses
-jc.extent <- extent(0,100,0,100)
-#set up a blank raster
-r <- raster(nrows=100, ncols=100, ext=jc.extent)
-
-unif.rast<-rasterize(unif.spdf, r, field = 1)
-unif.rast[is.na(unif.rast)] <- 0
-```
-```{r}
-# You can plot the result
-plot(unif.rast)
-# You can plot the points on top of the raster 
-plot(unif.spdf, add = TRUE)
-```
-```{r echo=F}
-# Generate neighbors list 
-nb <- cell2nb(nrow = nrow(unif.rast), ncol = ncol(unif.rast))
-# To calculate neighbors for queen configuration
-nb.queen <- cell2nb(nrow = nrow(unif.rast), ncol = ncol(unif.rast), type = "queen")
-# Convert the neighbors list to a 'weights' list;
-lwb <- nb2listw(nb, style = "B")
-lwb.queen <- nb2listw(nb.queen, style = "B")
-```
-```{r}
-#join Counts
-joincount.test(as.factor(unif.rast@data@values), lwb, alternative = "greater")
-# Second, the permutation-based jon count test; similar to above, and you
-# can adjust the number of simulations with the 'nsim' argument
-joincount.mc(as.factor(unif.rast@data@values), lwb, nsim = 999, alternative = "greater")
-# Can also compute these for the queen setup; for example, with the
-# permutation test:
-joincount.mc(as.factor(unif.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
-```
-While join count statistics is powerful for prescence/abscence and character attributes, most of the time ecology deals with continuous data and many variables. Statics such as Moran's I and Geary's C are often used for to calculate spatial autocorrelation. Using the Harvard Forest example, we can calculate both statistics by taking a subset of the tree data for a species. 
-
-```{r}
-# Use the function 'sample' to get random sample of points; this is done on 
-# a SpatialPointsDataFrame , but could also be run on a regular dataframe 
-acru.sample <- acru.spdf[sample(1:nrow(acru.spdf), 300, replace = FALSE), ] 
-# plot(acru.sample) #plot if you want to see waht the random sample of data # looks like
-
-```
-
-We will use the package spdep. We can use other packages for these statistics, but spdep allows for more customization, espeically for distance bands. Distance bands are important as they allow you to define neighborhoods, which determine how far from a point its value will affect other values. In ecology these distance bands can include how far an animal can travel, or perhaps how far a pollutant can travel in a body of water before it's toxicity disipates. 
-
-Moran's I
-```{r}
-acru.moran <- correlog(coordinates(acru.sample), acru.sample$dbh91, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'acru.moran' 
-plot(acru.moran) #plots the results
-```
-
-Geary C
-```{r}
-acru.geary <- correlog(coordinates(acru.sample), acru.sample$dbh91, method = "Geary", alternative = "two.sided")
-plot(acru.geary)
-```
-
-Local Moran's I
-```{r}
-acru.rast.count <-rasterize(acru.spdf, r, fun=function(x,...)length(x))[[1]]
-plot(MoranLocal(acru.rast.count))
-```
-
-
-
-Now we will look at Get Ord General G and G star statistics. The statistical tests before have told us if our data is clustered, whether like values are within a similar region. Now we want to know where hot and cold spots occur. hot and cold spots are areas where values are high and low. This is particularly useful with continous data where you have a gradient of different values. 
-
-
-#What are Weight Counts? And is impolite to ask?
-
-First we need to call in our clumped data
-```{r}
 c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
 e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 e
-plot(e[,2], e[,3], main="Clumped Data Example",
-     xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=e[,4])
+as.numeric(e$att)
+?plot
+plot(e$x, e$y)
 ```
-First we want to make a distance matrix and inverse distance matrix
-I dont want to do this with 500 points, so I am going to cut it down to 5 for now
+
+This is the data where everything is so very clumped
 ```{r}
-library(dplyr)
-library(raster)
-e.small<- sample_n(e[2:3], size=50, replace=F)
-e.dis<- pointDistance(e.small, lonlat=F)
-#make the  matrix
-w<- 1/e.dis
+v <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_ExtraClumped")
+w <- read.csv(v, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+w
+as.numeric(w$att)
+?plot
+plot(w$x, w$y)
 ```
 
-Inverse distance matricies and distance weighting assume that points that are closer togther are more statistically significant.
 
-**This is me trying interpolation- The 2 plots have different levels of effect across points, making smoother, or less smooth images
-You can also use the data that is already collected to interpolate across to areas for which you have no data.We will use the example from the tree data, though it is admittedly a strange example, as trees dont cover entire areas. 
+This is for a dataset with different distributions
 ```{r}
-#first the data we have-this is our original raster for the acru trees
-plot(acru.spdf, col=acru.spdf$dbh91)
-g<- ggplot(data=acru, aes(x=xsite, y=ysite))
-+ geom_tile(mapping= aes(fill=acru.spdf$dbh91))
-+ scale_fill_gradient(low="blue", high="yellow")
-g
+m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Mixed")
+n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+n
+as.numeric(n$att)
 ```
-Now that we have seen/remembered what our raster looks like, we will interpolate our data to the surrounding areas. This will use the data we have and use distance weighting in the background to casue closer points to have more effect on an interpolated point than farther points.
+
+This is for uniform data
 ```{r}
-#Then we will interpolate over the whole area
-#First we make a new grid to put the data in
-grid.new<-as.data.frame(spsample(acru.spdf ,"regular", n=500))
-names(grid.new)       <- c("X", "Y")
-coordinates(grid.new) <- c("X", "Y")
-gridded(grid.new)     <- TRUE  # Create SpatialPixel object
-fullgrid(grid.new)
-#This is the actual interpolation, tell it what to interpolate
-#This first one has the least smoothing
-P.orig.idw <- gstat::idw(dbh91 ~ 1, acru.spdf, newdata=grid.new, idp=3.0)
-#power values range between 1-3 with a smaller number creating a smoother surface (stronger influence from surrounding points) and a larger number creating a surface that is more true to the actual data and in turn a less smooth surface potentially
-plot(P.orig.idw)
-
-#then interpolation
-grid<-as.data.frame(spsample(acru.spdf ,"regular", n=500))
-names(grid)       <- c("X", "Y")
-coordinates(grid) <- c("X", "Y")
-gridded(grid)     <- TRUE  # Create SpatialPixel object
-fullgrid(grid)    <- TRUE  # Create SpatialGrid object
-# Add P's projection information to the empty grid
-proj4string(grid) <- proj4string(acru.spdf)
-
-# Interpolate the grid cells using a power value of 1 (idp=.0)
-#This has the most smoothing
-P.idw <- gstat::idw(dbh91 ~ 1, acru.spdf, newdata=grid, idp=1.0)
-
-plot(P.idw)
-
-##this code works but not sure if is the best way to show it
+u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
+z <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+z
+as.numeric(z$att)
 ```
+Let us start with Moran's I. This statistic uses a spatial weights matrix, the most common of which is an inverse distance matrix. You can always use a different weights matrix depending on the type of data you have. 
 
-
-
-**This will need to be moved later, but here is the data for the original data
-
-Next we will run the same statistical tests as we did with the tree data
+First we must create the matrix. 
 ```{r}
-#Moran's I
-random.moran <- correlog(random.spdf, d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'random.moran' 
-plot(random.moran) #plots the results
-#is this right?
+inf.distsd <- as.matrix(dist(cbind(lon=d$x, lat=d$y)))
+inf.dists.invd <- 1/inf.dists
+diag(inf.dists.invd) <- 0 # we need the diagnol values to equal 0 for this matrix
 
-#Local Moran's
-#random.rast.count <-rasterize(random.spdf, r, fun=function(x,...)length(x))[[1]]
-#plot(MoranLocal(random.rast.count))
-#gtting an error
+#repeat for our other two datasets
+inf.distse <- as.matrix(dist(cbind(lon=e$x, lat=e$y)))
+inf.dists.inve <- 1/inf.dists
+diag(inf.dists.inve) <- 0 
 
-#Geary's C
-random.geary <- correlog(coordinates(random.spdf), d$att, method = "Geary", alternative = "two.sided")
-plot(random.geary)
+inf.distsn <- as.matrix(dist(cbind(lon=n$x, lat=n$y)))
+inf.dists.invn <- 1/inf.dists
+diag(inf.dists.invn) <- 0 
+
 ```
 
-
-
-
-
-
-
-Next we will run the same statistical tests as we did with the tree data
+Now we can calculate Moran's I using the ape package
 ```{r}
-#Moran's I
-clumped.moran <- correlog(clumped.spdf, d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'random.moran' 
-plot(clumped.moran) #plots the results
-#is this right?
-
-#Local Moran's
-#random.rast.count <-rasterize(random.spdf, r, fun=function(x,...)length(x))[[1]]
-#plot(MoranLocal(random.rast.count))
-#gtting an error
-
-#Geary's C
-clumped.geary <- correlog(coordinates(clumped.spdf), d$att, method = "Geary", alternative = "two.sided")
-plot(clumped.geary)
+#For random data
+Moran.I(d$att, inf.dists.invd)
 ```
-
-
-Next we will run the same statistical tests as we did with the tree data
 ```{r}
-#Moran's I
-v_clumped.moran <- correlog(v_clumped.spdf, d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'random.moran' 
-plot(v_clumped.moran) #plots the results
-#is this right?
-
-#Local Moran's
-#random.rast.count <-rasterize(random.spdf, r, fun=function(x,...)length(x))[[1]]
-#plot(MoranLocal(random.rast.count))
-#gtting an error
-
-#Geary's C
-v_clumped.geary <- correlog(coordinates(v_clumped.spdf), d$att, method = "Geary", alternative = "two.sided")
-plot(v_clumped.geary)
+#For clumped data
+Moran.I(e$att, inf.dists.inve)
+?Moran.I
 ```
-
-This is for a dataset with uniform distributions
-
-Next we will run the same statistical tests as we did with the tree data
 ```{r}
-#Moran's I
-unif.moran <- correlog(unif.spdf, d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'random.moran' 
-plot(unif.moran) #plots the results
-#is this right?
-
-#Local Moran's
-#random.rast.count <-rasterize(random.spdf, r, fun=function(x,...)length(x))[[1]]
-#plot(MoranLocal(random.rast.count))
-#gtting an error
-
-#Geary's C
-unif.geary <- correlog(coordinates(unif.spdf), d$att, method = "Geary", alternative = "two.sided")
-plot(unif.geary)
+#For in between clumped and random data
+Moran.I(n$att, inf.dists.invn)
 ```
+Hmmm so it looks like none of our data is actually correlated spatially. The problem here is that we are not specifying any distance that define neighborhoods. If the data is plotted on a 100 by 100 mark plot, then we see obvious clumping of data. But if we have intervals of five, then the data no longer seems clumped. 
+
+Lets try using the spdep package instead using data = d
+```{r}
+#first we need to set up the weights matrix
+?mat2listw
+sample.metric.dists.inv.listw <-mat2listw(inf.dists.invd)
+?dnearneigh #creates distinct neighborhoods instead of continuous ones
+neighborhood30 <- dnearneigh(cbind(d$y, d$x), 0, 30)
+neighborhood30.listw <- nb2listw(neighborhood30, style="B")
+moran.test(d$att, sample.metric.dists.inv.listw, alternative = "two.sided")
+```
+CHALLENGE
+The Moran's I statistic standard deviate is negative which points to randomization of the data. Try playing with the neighborhood weights and see if this changes. What happens when neighborhood weigh is set 0 to 10. What happens when the neighhood weights are set from 0 to 1000. Why do you get these results. 
+
+Lets try seeing what happens with clumped data
+```{r}
+sample.metric.dists.inv.listw <-mat2listw(inf.dists.inve)
+neighborhood30 <- dnearneigh(cbind(e$y, e$x), 0, 10)
+neighborhood30.listw <- nb2listw(neighborhood30, style="B")
+moran.test(e$att, neighborhood30.listw, alternative = "two.sided")
+```
+why...
+ewrwe
+
+
 
