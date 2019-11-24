@@ -79,15 +79,25 @@ library(pgirmess) #to create your raster grid cells
 library(gstat)
 library(dismo)
 ```
-
-
-
-
+```{r}
+#Random Data
+f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+#Clumped Data
+c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
+e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+#Very Clumped Data
+m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_ExtraClumped")
+n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+#Uniform Data
+u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
+v <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+```
 
 One way to look at spatial data is to look at polygons which help visualize nearest neighbors. One type of polygon is the priximity polygon, or Voronoi polygon, which has each polygon surrounding the area of an object or point.
 
-```{r}
 
+```{r}
 poly2<- voronoi(d)
 plot(poly2)
 
@@ -137,8 +147,6 @@ We will be using raster data for a couple of reasons. The main ones being that s
 
 First let us look at a simple dataset of 500 points that we created to mimic spatial data.Each point has x and y values, which represent a longitude and latitude, and an attribute, which we will use later. This data was made to be randomly distributed. 
 ```{r echo=F}
-f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
-d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 plot(d[,2], d[,3], main="Random Scatterplot Example",
      xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100))
 ```
@@ -266,8 +274,6 @@ Now lets break this methodology down so that we can apply it to our own data for
 We will be using data created for this module, which is in the repository.
 To start we will pull in a dataset with a random distribution
 ```{r}
-f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
-d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 d
 ```
 This is to rasterize the data
@@ -307,9 +313,7 @@ joincount.mc(as.factor(random.rast@data@values), lwb.queen, nsim = 999, alternat
 ```
 
 This is the data where everything is clumped
-```{r echo=F}
-c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
-e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+```{r}
 e
 ```
 Rasterization
@@ -350,8 +354,6 @@ joincount.mc(as.factor(clumped.rast@data@values), lwb.queen, nsim = 999, alterna
 
 This is for a dataset with different distributions
 ```{r}
-m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_ExtraClumped")
-n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 n
 ```
 ```{r echo=F}
@@ -393,8 +395,6 @@ joincount.mc(as.factor(v_clumped.rast@data@values), lwb.queen, nsim = 999, alter
 ```
 This is uniformly distributed data
 ```{r}
-u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
-v <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 v
 ```
 Rasterize
