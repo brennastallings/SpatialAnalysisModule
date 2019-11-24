@@ -77,6 +77,7 @@ library(raster)
 library(pgirmess) #to create your raster grid cells
 library(gstat)
 library(dismo)
+library(igraph)
 ```
 
 This is us pulling in all the data that we will need in this module
@@ -104,9 +105,16 @@ HTrees <- read.csv("http://harvardforest.fas.harvard.edu/data/p03/hf032/hf032-01
 ```
 
 
+
 Before we get started, you should know the two different data types that GIS spatial statistics can analyze. Vectors and Rasters. Vectors are continous sets of data that contain polygos, lines, and/or point data. Rasters on the other hand are images made up of pixels, with each pixel having a single corresponding value. Spatial autocorrelation can be performed on both polygon data and raster data, but the majority of packages for spatial statistics require you to have a raster data set. 
 
-For point data you can convert to either raster or a polygon. The point to polygon transformation can be particularly useful. Polygons help visualize nearest neighbors. One type of polygon is the priximity polygon, or Voronoi polygon, which has each polygon surrounding the area of an object or point.
+#Lets talk about Rasterization
+
+There are 2 main types of data that can be used with spatial data, called vectors and rasters. Vector data is when the data is used as points, lines, and polygons, such as our orginal data, which is stored as points. We then convert the data to raster format for our statistics.
+The main pros of using polygon data is that it is more spatially accurate. The polygons can be created to fit the data, and uses smaller fie/storage size. However, vector data doesnt work well with continuous data.
+
+
+The point to polygon transformation can be particularly useful. Polygons help visualize nearest neighbors. One type of polygon is the priximity polygon, or Voronoi polygon, which has each polygon surrounding the area of an object or point.
 
 
 ```{r}
@@ -120,6 +128,7 @@ poly3<- voronoi(v)
 plot(poly3)
 
 ```
+
 
 To convert raster data to polygon data, we can use the package 'spdep', which we will continue to use throughout the module. There is another package, 'ape' which can do a few statistics, but spdep is much more robust so we will use it instead.
 
@@ -160,25 +169,21 @@ plot(neighbors.q, xy, col='red', lwd=2, add=T)
 ```
 **Add rook v queen here
 
+Raster data uses a matrix of cells to represent the data, using either categorical or continuous variables. It works better than polygons for continuous data such as elevation and temperature. Raster data can be used in a few ways. The data can be assumed to exist at the center of the cell or across the whole cell. You can define a cell's contents based on either the center point, majority, or average value. Raster data is useful for very large datasets and images, espeically in remote sensing data. 
 
-#Lets talk about Rasterization
-vectors vs Rasters
-There are 2 main types of data that can be used with spatial data, call vectors and rasters. Vector data is when the data is used as points, lines, and polygons, such as our orginal data, which is stored as points. We then convert the data to raster format for our statistics.
-The main pros of using polygon data is that it is more spatially accurate. The polygons can be created to fit the data, and uses smaller fie/storage size. However, vector data doesnt work well with continuous data. 
 
-Raster data uses a matrix of cells to represent the data, using either categorical or continuous variables. It works better than polygons for continuous data such as elevation and temperature. Raster data can be used in a few ways. The data can be assumed to exist at the center of the cell or across the whole cell. Raster data is useful for remote sensing data as well as continuous data. It also has a standard cell size across the area, chech can make calculations much easier. You need to pay attention to and carefully consider cell size for rasters. Picking the wrong size of cells can lead to pixelation of data and loss of information, while using a very small cell size can make the file size unweildy.  
+Raster data also has a standard cell size across the area which is defined by the user. The size of the cells determines the spatial resolution, and therefore the spatial scale to which patterns are accurate. You need to pay attention to and carefully consider cell size for rasters. Picking the wrong size of cells can lead to pixelation of data and loss of information, while using a very small cell size can make the file size unweildy. 
+
 ![Example for Raster size importance](Images/raster_ex.jpg)
 
+We will be using raster data for a couple of reasons. The main ones being that some of the packages that we use in this modlue require raster data to work, so we have no choice, and that it makes you learn how to convert between the data types. 
 
-We will be using raster data for a couple of reasons. The main ones being that some of the packages that we use in this modlue need raster data to work, so we have no choice, and that it makes you learn how to convert between the data types. 
-
-First let us look at a simple dataset of 500 points that we created to mimic spatial data.Each point has x and y values, which represent a longitude and latitude, and an attribute, which we will use later. This data was made to be randomly distributed. 
+First let us look at a simple dataset of 500 points that we created to mimic spatial data. Each point has x and y values, which represent a longitude and latitude, and an attribute, which we will use later. This data was made to be randomly distributed. 
 ```{r echo=F}
 plot(d[,2], d[,3], main="Random Scatterplot Example",
      xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100))
 ```
 
-The first thing we will need to do is rasterize our data, which turns our point data into the cellular data. 
 We will change this to a raster data set using the package 'spdf'
 ```{r}
 #First we get the needed columns from the data into a new format for the package
@@ -188,19 +193,15 @@ jc.extent <- extent(0,100,0,100)
 # Then we set up a blank raster, which we will then put the data into
 r <- raster(nrows=100, ncols=100, ext=jc.extent)
 #Then we assign the data to the raster
-random.rast<-rasterize(random.spdf, r, field = 1)
-random.rast[is.na(random.rast)] <- 0
+random.rast1<-rasterize(random.spdf, r, field = 1)
+random.rast1[is.na(random.rast1)] <- 0
+plot(random.rast1)
 ```
 
-You can plot the result, and the green squares are the cells in the rater that have points
-```{r echo=F}
-plot(random.rast)
-```
-As in the picture we showed earlier, changing the size of cells in the raster changes the pixelation of the output, this one with a cell size of 3.3 x 3.3 pixels instead of 1 x 1 pixels in the first
+As in the picture we showed earlier, changing the size of cells in the raster changes the pixelation of the output, this one with a cell size of 3.3 x 3.3 pixels instead of 1 x 1 pixels in the first. Visually compare the two different rasters. 
 ```{r}
 #First we get the needed columns from the data into a new format for the package
 random.spdf <- cbind(d$x,d$y)
-
 #Next we define the extent, or size, of the plot the data is found in
 jc.extent <- extent(0,100,0,100)
 # Then we set up a blank raster, which we will then put the data into
@@ -209,6 +210,7 @@ r <- raster(nrows=30, ncols=30, ext=jc.extent)
 random.rast<-rasterize(random.spdf, r, field = 1)
 random.rast[is.na(random.rast)] <- 0
 plot(random.rast)
+plot(random.rast1)
 ```
 
 Once data is rasterized, you can identify cells that are connected, using the clump function, and can identify the edges, or transitions, between cell values.
@@ -218,14 +220,16 @@ plot(rand.clump)
 clump.clump<- clump(clumped.rast)
 plot(clump.clump)
 ```
+
+
 The boundaries are cells that have more than 1 class in the cells around them
 ```{r}
 plot(boundaries(clumped.rast, classes=T))
 ```
 
 #local v Global
-One thing to keep in mind with all the stats that we will be using is the difference between local and global stats and what they are calculating. Many of the functions we will be usding can calculate either one, but you need to know which one you want.
-Global tests look for clustering withing your entire dataset, while local stats can distinguish clustering in smaller subsections, working at a smaller scale.  
+One thing to keep in mind with all the stats that we will be using is the difference between local and global stats and what they are calculating. Many of the functions we will be using can calculate either one, but you need to know which one you want.
+Global tests look for clustering within your entire dataset, while local stats can distinguish clustering in smaller subsections, working at a smaller scale.  
 
 
 #Come on kids, Lets play with stats now!
