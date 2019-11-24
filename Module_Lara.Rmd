@@ -58,12 +58,16 @@ In general there are three patterns that the above statistics can distinguish be
   -calculate statistic
   -display
 Local G
--Next steps
+-Interpolation
   -Kriging and data modeling
   -GWR
 -Citations
 
-Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis. The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space. 
+Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis. 
+
+<<<<<<GREG ADD EXAMPLE OF DIFFERENT DISTRIBUTIONS 
+
+The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space. 
 When dealing with spatial data we must also considered that objects next to each other may have influence on one another. That is, objects in space are not, in fact indepdent, but are rather dependent and the intensity of dependencies varies by how close two objects or neighborhoods are to each other. The statistics must reflect this dependency and are the proccess of relating clustered values together is known as spatial autocorrelation. 
 
 We need a few packages
@@ -78,7 +82,10 @@ library(pgirmess) #to create your raster grid cells
 library(gstat)
 library(dismo)
 library(igraph)
+library(dplyr)
+library(ggplot2)
 ```
+
 
 Let us pull in our example data sets
 ```{r}
@@ -98,16 +105,20 @@ plot(n$x, n$y)
 u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
 v <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 plot(v$x, v$y)
+
 #real data from Harvard forest on tree distributions. 
 HTrees <- read.csv("http://harvardforest.fas.harvard.edu/data/p03/hf032/hf032-01-tree.csv")
 ```
+
 
 #Lets talk about Rasterization
 vectors vs Rasters
 There are 2 main types of data that can be used with spatial data, called vectors and rasters. Vector data is when the data is used as points, lines, and polygons, such as our orginal data, which is stored as points. We then convert the data to raster format for our statistics.
 The main pros of using polygon data is that it is more spatially accurate. The polygons can be created to fit the data, and uses smaller fie/storage size. However, vector data doesnt work well with continuous data.
 
+
 The point to polygon transformation can be particularly useful. Polygons help visualize nearest neighbors. One type of polygon is the priximity polygon, or Voronoi polygon, which has each polygon surrounding the area of an object or point.
+
 
 
 ```{r}
@@ -183,33 +194,32 @@ plot(boundaries(clumped.rast, classes=T))
 One thing to keep in mind with all the stats that we will be using is the difference between local and global stats and what they are calculating. Many of the functions we will be using can calculate either one, but you need to know which one you want.
 Global tests look for clustering within your entire dataset, while local stats can distinguish clustering in smaller subsections, working at a smaller scale.  
 
+<<<<GREG ADD PHOTO/EXPLANATION? 
+
+#Spatial Weight (GREG THERE ARE SOME THINGS LATER ON THAT CAN BE MOVE UP HERE)
+
+Different ways we can compare neighbors or define neighborhoods
+-Define what a neighborhood is 
+-Inverse distance weighting as the most common
+-Rook, queen, bishop moves for raster data <<<<GREG EXAMPLE!!!!
+-Distance bands (discrete neighborhoods define by distance from a cell or polygon) <<<<EXAMPLE
+-Nearest K neighbor 
 
 #Come on kids, Lets play with stats now!
 
 Let us start with join count analysis. This type of analysis looks at sets of data that have character attributes and spatial location. Character attributes can include prescence/abscence data as well as characterizations such as blue versus red states. Join count statistics can tell you whether your data is clumped, randomly dispersed, or uniformly dispersed. Join count statistics are typically used when dealing with polygons rather than points. 
 
-First we need some data. We will use tree data from Harvard to start and then apply this methodology to our own data that we created. We will look at the distributions of three different tree species. 
+To start we will use tree data from Harvard and then apply this methodology to our own data that we created. 
 
-
-Next we need to create a raster for our data. A raster is essentially a grid, which is made up of cells. Cells can be any size that you define and can impact the spatial resolution of your data. Be careful when you define your raster size as the size may be dependent on the type of data you have and the data limitations. 
+First we need to create a raster for our data. Be careful when you define your raster size as the size may be dependent on the type of data you have and the data limitations. 
 
 ```{r}
 # Create subset of data for Acer rubrum
 acru <- subset(HTrees, species == "ACRU" & dbh91 != "NA", select = c("xsite", "ysite", "dbh91"))
-# Create subset of data for Prunus serotina
-prse <- subset(HTrees, species == "PRSE" & dbh91 != "NA", select = c("xsite", "ysite", "dbh91"))
-# Create subset of data for Pinus strobus
-pist <- subset(HTrees, species == "PIST" & dbh91 != "NA", select = c("xsite", "ysite", "dbh91"))
 
 # Convert tree data to SpatialPointsDataFrame, both for entire dataset, and # for individual species
-HTrees.spdf <- HTrees
-coordinates(HTrees.spdf) <- c("xsite", "ysite")
-pist.spdf <- pist
-coordinates(pist.spdf) <- c("xsite", "ysite")
 acru.spdf <- acru
 coordinates(acru.spdf) <- c("xsite", "ysite")
-prse.spdf <- prse
-coordinates(prse.spdf) <- c("xsite", "ysite")
 
 #Define the extent for the join count analyses
 jc.extent <- extent(-300,100,-700,-200)
@@ -250,13 +260,16 @@ joincount.mc(as.factor(acru.rast@data@values), lwb, nsim = 999, alternative = "g
 # permutation test:
 joincount.mc(as.factor(acru.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
+<<<<<<GREG DEFINE MONTE CARLO VS NORMAL METHODS
+<<<<<<INTERPRETATION OF DATA
+
 Now lets break this methodology down so that we can apply it to our own data for join count statistics. 
-We will be using data created for this module, which is in the repository.
-To start we will pull in a dataset with a random distribution
-```{r}
-d
-```
-This is to rasterize the data
+
+To start we will look at our random data.
+
+First we rasterize
+Second we will define our neighborhoods 
+Third we will run our statistics 
 ```{r}
 random.spdf <- cbind(d$x,d$y)
 
@@ -291,12 +304,10 @@ joincount.mc(as.factor(random.rast@data@values), lwb, nsim = 999, alternative = 
 # permutation test:
 joincount.mc(as.factor(random.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
+<<<<BRENNA WHY IS THERE A PLOT OF POINTS??? 
+
 
 This is the data where everything is clumped
-```{r}
-e
-```
-Rasterization
 ```{r echo=F}
 clumped.spdf <- cbind(e$x,e$y)
 
@@ -307,14 +318,10 @@ r <- raster(nrows=100, ncols=100, ext=jc.extent)
 
 clumped.rast<-rasterize(clumped.spdf, r, field = 1)
 clumped.rast[is.na(clumped.rast)] <- 0
-```
-```{r}
 # You can plot the result
 plot(clumped.rast)
 # You can plot the points on top of the raster 
 plot(clumped.spdf, add = TRUE)
-```
-```{r echo=F}
 # Generate neighbors list 
 nb <- cell2nb(nrow = nrow(clumped.rast), ncol = ncol(clumped.rast))
 # To calculate neighbors for queen configuration
@@ -331,11 +338,10 @@ joincount.mc(as.factor(clumped.rast@data@values), lwb, nsim = 999, alternative =
 # permutation test:
 joincount.mc(as.factor(clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
+>>>>BRENNA WHY IS THERE A PLOT OF POINTS
+>>>>>GREG EXPLAIN INTERPREATION 
 
 This is for a dataset with different distributions
-```{r}
-n
-```
 ```{r echo=F}
 #Rasterize
 v_clumped.spdf <- cbind(n$x,n$y)
@@ -347,14 +353,11 @@ r <- raster(nrows=100, ncols=100, ext=jc.extent)
 
 v_clumped.rast<-rasterize(v_clumped.spdf, r, field = 1)
 v_clumped.rast[is.na(v_clumped.rast)] <- 0
-```
-```{r}
 # You can plot the result
 plot(v_clumped.rast)
 # You can plot the points on top of the raster 
 plot(v_clumped.spdf, add = TRUE)
-```
-```{r echo=F}
+
 # Generate neighbors list 
 nb <- cell2nb(nrow = nrow(v_clumped.rast), ncol = ncol(v_clumped.rast))
 # To calculate neighbors for queen configuration
@@ -362,8 +365,7 @@ nb.queen <- cell2nb(nrow = nrow(v_clumped.rast), ncol = ncol(v_clumped.rast), ty
 # Convert the neighbors list to a 'weights' list;
 lwb <- nb2listw(nb, style = "B")
 lwb.queen <- nb2listw(nb.queen, style = "B")
-```
-```{r}
+
 #join Counts
 joincount.test(as.factor(v_clumped.rast@data@values), lwb, alternative = "greater")
 # Second, the permutation-based jon count test; similar to above, and you
@@ -373,11 +375,10 @@ joincount.mc(as.factor(v_clumped.rast@data@values), lwb, nsim = 999, alternative
 # permutation test:
 joincount.mc(as.factor(v_clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
+>>>>GREG 1 sentence interpretation 
+
+
 This is uniformly distributed data
-```{r}
-v
-```
-Rasterize
 ```{r echo=F}
 unif.spdf <- cbind(v$x,v$y)
 
@@ -388,14 +389,12 @@ r <- raster(nrows=100, ncols=100, ext=jc.extent)
 
 unif.rast<-rasterize(unif.spdf, r, field = 1)
 unif.rast[is.na(unif.rast)] <- 0
-```
-```{r}
+
 # You can plot the result
 plot(unif.rast)
 # You can plot the points on top of the raster 
 plot(unif.spdf, add = TRUE)
-```
-```{r echo=F}
+
 # Generate neighbors list 
 nb <- cell2nb(nrow = nrow(unif.rast), ncol = ncol(unif.rast))
 # To calculate neighbors for queen configuration
@@ -403,8 +402,7 @@ nb.queen <- cell2nb(nrow = nrow(unif.rast), ncol = ncol(unif.rast), type = "quee
 # Convert the neighbors list to a 'weights' list;
 lwb <- nb2listw(nb, style = "B")
 lwb.queen <- nb2listw(nb.queen, style = "B")
-```
-```{r}
+
 #join Counts
 joincount.test(as.factor(unif.rast@data@values), lwb, alternative = "greater")
 # Second, the permutation-based jon count test; similar to above, and you
@@ -414,7 +412,9 @@ joincount.mc(as.factor(unif.rast@data@values), lwb, nsim = 999, alternative = "g
 # permutation test:
 joincount.mc(as.factor(unif.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
-While join count statistics is powerful for prescence/abscence and character attributes, most of the time ecology deals with continuous data and many variables. Statics such as Moran's I and Geary's C are often used for to calculate spatial autocorrelation. Using the Harvard Forest example, we can calculate both statistics by taking a subset of the tree data for a species. 
+>>>>>GREG EXPLAIN INTERPRETATION 
+
+While join count statistics is powerful for prescence/abscence and character attributes, most of the time ecology deals with continuous data and many variables. Statics such as Moran's I and Geary's C are often used for to calculate spatial autocorrelation. Using the Harvard Forest example, we can calculate both statistics. 
 
 ```{r}
 # Use the function 'sample' to get random sample of points; this is done on 
@@ -424,31 +424,117 @@ acru.sample <- acru.spdf[sample(1:nrow(acru.spdf), 300, replace = FALSE), ]
 
 ```
 
-We will use the package spdep. We can use other packages for these statistics, but spdep allows for more customization, espeically for distance bands. Distance bands are important as they allow you to define neighborhoods, which determine how far from a point its value will affect other values. In ecology these distance bands can include how far an animal can travel, or perhaps how far a pollutant can travel in a body of water before it's toxicity disipates. 
+We will use the package spdep. We can use other packages for these statistics. spdep allows for more customization, espeically for distance bands. Distance bands are important as they allow you to define neighborhoods, which determine how far from a point its value will affect other values. In ecology these distance bands can include how far an animal can travel, or perhaps how far a pollutant can travel in a body of water before it's toxicity disipates. 
 
 Moran's I
 ```{r}
 acru.moran <- correlog(coordinates(acru.sample), acru.sample$dbh91, method = "Moran", nbclass = NULL, alternative = "two.sided")
+acru.moran
 # Can view the textual results by simply typing 'acru.moran' 
 plot(acru.moran) #plots the results
 ```
+>>>>GREG EXPLALIN MORANS I INTERPREATION AND THE GRAPH
+>>>>BRENNA I LIKE THE CORRELOGRAMS BUT WE SHOULD ADD IN THE ACTUAL STATISTICS TEST AS WELL FOR MORAN.TEST AND MORAN.MC. SAME WITH LISA AND GEARY C TESTS. 
+
+
+
 
 Geary C
 ```{r}
 acru.geary <- correlog(coordinates(acru.sample), acru.sample$dbh91, method = "Geary", alternative = "two.sided")
+acru.geary
 plot(acru.geary)
 ```
+>>>>GREG EXPLAIN
+
 
 Local Moran's I
 ```{r}
 acru.rast.count <-rasterize(acru.spdf, r, fun=function(x,...)length(x))[[1]]
+acru.rast.count
 plot(MoranLocal(acru.rast.count))
 ```
+>>>>BRENNA THIS AINT WORKING
 
 
+Next we will run the same statistical tests as we did with the tree data
+For our random data
+```{r}
+#Moran's I
+random.moran <- correlog(random.spdf, d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
+# Can view the textual results by simply typing 'random.moran' 
+plot(random.moran) #plots the results
+#is this right?
+
+#Local Moran's
+#random.rast.count <-rasterize(random.spdf, r, fun=function(x,...)length(x))[[1]]
+#plot(MoranLocal(random.rast.count))
+#gtting an error
+
+#Geary's C
+random.geary <- correlog(coordinates(random.spdf), d$att, method = "Geary", alternative = "two.sided")
+plot(random.geary)
+```
+
+For our clumped data
+```{r}
+#Moran's I
+clumped.moran <- correlog(clumped.spdf, d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
+# Can view the textual results by simply typing 'random.moran' 
+plot(clumped.moran) #plots the results
+#is this right?
+
+#Local Moran's
+#random.rast.count <-rasterize(random.spdf, r, fun=function(x,...)length(x))[[1]]
+#plot(MoranLocal(random.rast.count))
+#gtting an error
+
+#Geary's C
+clumped.geary <- correlog(coordinates(clumped.spdf), d$att, method = "Geary", alternative = "two.sided")
+plot(clumped.geary)
+```
+
+For our very clumped data
+```{r}
+#Moran's I
+v_clumped.moran <- correlog(v_clumped.spdf, d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
+# Can view the textual results by simply typing 'random.moran' 
+plot(v_clumped.moran) #plots the results
+#is this right?
+
+#Local Moran's
+#random.rast.count <-rasterize(random.spdf, r, fun=function(x,...)length(x))[[1]]
+#plot(MoranLocal(random.rast.count))
+#gtting an error
+
+#Geary's C
+v_clumped.geary <- correlog(coordinates(v_clumped.spdf), d$att, method = "Geary", alternative = "two.sided")
+plot(v_clumped.geary)
+```
+
+This is for a dataset with uniform distributions
+```{r}
+#Moran's I
+unif.moran <- correlog(unif.spdf, d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
+# Can view the textual results by simply typing 'random.moran' 
+plot(unif.moran) #plots the results
+#is this right?
+
+#Local Moran's
+#random.rast.count <-rasterize(random.spdf, r, fun=function(x,...)length(x))[[1]]
+#plot(MoranLocal(random.rast.count))
+#gtting an error
+
+#Geary's C
+unif.geary <- correlog(coordinates(unif.spdf), d$att, method = "Geary", alternative = "two.sided")
+plot(unif.geary)
+```
+>>>>>BRENNA THIS AINT WORKING 
 
 Now we will look at Get Ord General G and G star statistics. The statistical tests before have told us if our data is clustered, whether like values are within a similar region. Now we want to know where hot and cold spots occur. hot and cold spots are areas where values are high and low. This is particularly useful with continous data where you have a gradient of different values. 
 
+
+>>>>>>WE NEED TO ADD LOCAL G IN HERE TO 
 
 #What are Weight Counts? And is impolite to ask?
 
@@ -463,8 +549,6 @@ plot(e[,2], e[,3], main="Clumped Data Example",
 First we want to make a distance matrix and inverse distance matrix
 I dont want to do this with 500 points, so I am going to cut it down to 5 for now
 ```{r}
-library(dplyr)
-library(raster)
 e.small<- sample_n(e[2:3], size=50, replace=F)
 e.dis<- pointDistance(e.small, lonlat=F)
 #make the  matrix
@@ -472,6 +556,9 @@ w<- 1/e.dis
 ```
 
 Inverse distance matricies and distance weighting assume that points that are closer togther are more statistically significant.
+
+<<<<<GREG PUT SPATIAL WEIGHTS UP TOP
+
 
 **This is me trying interpolation- The 2 plots have different levels of effect across points, making smoother, or less smooth images
 You can also use the data that is already collected to interpolate across to areas for which you have no data.We will use the example from the tree data, though it is admittedly a strange example, as trees dont cover entire areas. 
@@ -483,6 +570,8 @@ g<- ggplot(data=acru, aes(x=xsite, y=ysite))
 + scale_fill_gradient(low="blue", high="yellow")
 g
 ```
+>>>>BRENNA GGPLOT DID NOT WORK. ALSO CAN WE PUT THIS LAST AFTER THE STATS. 
+
 Now that we have seen/remembered what our raster looks like, we will interpolate our data to the surrounding areas. This will use the data we have and use distance weighting in the background to casue closer points to have more effect on an interpolated point than farther points.
 ```{r}
 #Then we will interpolate over the whole area
@@ -515,91 +604,18 @@ plot(P.idw)
 
 ##this code works but not sure if is the best way to show it
 ```
+>>>>BRENNA EXPLAIN THE RESULTS
 
-
-
-**This will need to be moved later, but here is the data for the original data
-
-Next we will run the same statistical tests as we did with the tree data
-```{r}
-#Moran's I
-random.moran <- correlog(random.spdf, d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'random.moran' 
-plot(random.moran) #plots the results
-#is this right?
-
-#Local Moran's
-#random.rast.count <-rasterize(random.spdf, r, fun=function(x,...)length(x))[[1]]
-#plot(MoranLocal(random.rast.count))
-#gtting an error
-
-#Geary's C
-random.geary <- correlog(coordinates(random.spdf), d$att, method = "Geary", alternative = "two.sided")
-plot(random.geary)
-```
-
-
-
-
-
-
-
-Next we will run the same statistical tests as we did with the tree data
-```{r}
-#Moran's I
-clumped.moran <- correlog(clumped.spdf, d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'random.moran' 
-plot(clumped.moran) #plots the results
-#is this right?
-
-#Local Moran's
-#random.rast.count <-rasterize(random.spdf, r, fun=function(x,...)length(x))[[1]]
-#plot(MoranLocal(random.rast.count))
-#gtting an error
-
-#Geary's C
-clumped.geary <- correlog(coordinates(clumped.spdf), d$att, method = "Geary", alternative = "two.sided")
-plot(clumped.geary)
-```
-
-
-Next we will run the same statistical tests as we did with the tree data
-```{r}
-#Moran's I
-v_clumped.moran <- correlog(v_clumped.spdf, d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'random.moran' 
-plot(v_clumped.moran) #plots the results
-#is this right?
-
-#Local Moran's
-#random.rast.count <-rasterize(random.spdf, r, fun=function(x,...)length(x))[[1]]
-#plot(MoranLocal(random.rast.count))
-#gtting an error
-
-#Geary's C
-v_clumped.geary <- correlog(coordinates(v_clumped.spdf), d$att, method = "Geary", alternative = "two.sided")
-plot(v_clumped.geary)
-```
-
-This is for a dataset with uniform distributions
-
-Next we will run the same statistical tests as we did with the tree data
-```{r}
-#Moran's I
-unif.moran <- correlog(unif.spdf, d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'random.moran' 
-plot(unif.moran) #plots the results
-#is this right?
-
-#Local Moran's
-#random.rast.count <-rasterize(random.spdf, r, fun=function(x,...)length(x))[[1]]
-#plot(MoranLocal(random.rast.count))
-#gtting an error
-
-#Geary's C
-unif.geary <- correlog(coordinates(unif.spdf), d$att, method = "Geary", alternative = "two.sided")
-plot(unif.geary)
-```
 
 Citations
+<<<<<<< HEAD
+<https://rdrr.io/rforge/spdep/man/localG.html> For G star
+<https://github.com/r-spatial/spdep/blob/master/man/localG.Rd> For localG
+<https://cran.r-project.org/web/packages/lctools/vignettes/SpatialAutocorrelation.pdf> 
+<https://mltconsecol.github.io/TU_LandscapeAnalysis_Documents/Assignments_web/Assignment06_Autocorrelation.pdf> Harvard Trees
+<https://gdmdata.com/media/documents/handouts/2017ASA_FarmToTable_Spatial_correlation.pdf> 
+<https://rstudio-pubs-static.s3.amazonaws.com/223305_944ddc517306448f8fb0d60ca29dd94b.html> Examples for greg?
 
+
+=======
+>>>>>>> dae30cae85a084964d5061e14f2ddfa13dc21e99
