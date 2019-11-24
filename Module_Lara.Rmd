@@ -172,11 +172,22 @@ r <- raster(nrows=30, ncols=30, ext=jc.extent)
 #Then we assign the data to the raster
 random.rast<-rasterize(random.spdf, r, field = 1)
 random.rast[is.na(random.rast)] <- 0
-plot(random.rast)
 plot(random.rast1)
+plot(random.rast)
 ```
 
 Once data is rasterized, you can identify cells that are connected, using the clump function, and can identify the edges, or transitions, between cell values.
+```{r echo=F}
+#First we rasterize the clumped data
+clumped.spdf <- cbind(e$x,e$y)
+#Define the extent for the join count analyses
+jc.extent <- extent(0,100,0,100)
+#set up a blank raster
+r <- raster(nrows=100, ncols=100, ext=jc.extent)
+
+clumped.rast<-rasterize(clumped.spdf, r, field = 1)
+clumped.rast[is.na(clumped.rast)] <- 0
+```
 ```{r}
 rand.clump<-clump(random.rast)
 plot(rand.clump)
@@ -240,26 +251,27 @@ plot(acru.spdf, add = TRUE)
 # commands, nested in the cell2nb function (as ilustrated below). Note, the
 # default for this is 'rook', but you can change the join counts to 'queen'
 # by adding the argument 'type='queen'.
-nb <- cell2nb(nrow = nrow(acru.rast), ncol = ncol(acru.rast))
+nb.acru <- cell2nb(nrow = nrow(acru.rast), ncol = ncol(acru.rast))
 # To calculate neighbors for queen configuration
 nb.queen <- cell2nb(nrow = nrow(acru.rast), ncol = ncol(acru.rast), type = "queen")
 # Convert the neighbors list to a 'weights' list; again, this will be the
 # same for all species we are analyzing. You an follow the example below
 # using 'style='B' (as a Binary weights matrix). Again, calculate this for
 # the queen setup as well as the default (rook) setup.
-lwb <- nb2listw(nb, style = "B")
-lwb.queen <- nb2listw(nb.queen, style = "B")
+lwb.acru <- nb2listw(nb.acru, style = "B")
+lwb.queen.acru <- nb2listw(nb.queen, style = "B")
 
 # First, the regular join count test for Acer rubrum (Testing the hypothesis
 # of aggregation among like categories; add the argument 'alternative='less'
 # to reverse this)
-joincount.test(as.factor(acru.rast@data@values), lwb, alternative = "greater") # Second, the permutation-based jon count test; similar to above, and you
+joincount.test(as.factor(acru.rast@data@values), lwb.acru, alternative = "greater") # Second, the permutation-based jon count test; similar to above, and you
 # can adjust the number of simulations with the 'nsim' argument
-joincount.mc(as.factor(acru.rast@data@values), lwb, nsim = 999, alternative = "greater")
+joincount.mc(as.factor(acru.rast@data@values), lwb.acru, nsim = 999, alternative = "greater")
 # Can also compute these for the queen setup; for example, with the
 # permutation test:
-joincount.mc(as.factor(acru.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
+joincount.mc(as.factor(acru.rast@data@values), lwb.queen.acru, nsim = 999, alternative = "greater")
 ```
+
 <<<<<<GREG DEFINE MONTE CARLO VS NORMAL METHODS
 <<<<<<INTERPRETATION OF DATA
 
@@ -282,8 +294,6 @@ random.rast<-rasterize(random.spdf, r, field = 1)
 random.rast[is.na(random.rast)] <- 0
 # You can plot the result
 plot(random.rast)
-# You can plot the points on top of the raster 
-plot(random.spdf, add = TRUE)
 
 # Generate neighbors list 
 nb <- cell2nb(nrow = nrow(random.rast), ncol = ncol(random.rast))
@@ -305,6 +315,7 @@ joincount.mc(as.factor(random.rast@data@values), lwb, nsim = 999, alternative = 
 joincount.mc(as.factor(random.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
 <<<<BRENNA WHY IS THERE A PLOT OF POINTS??? 
+*this is gone now
 
 
 This is the data where everything is clumped
@@ -320,8 +331,7 @@ clumped.rast<-rasterize(clumped.spdf, r, field = 1)
 clumped.rast[is.na(clumped.rast)] <- 0
 # You can plot the result
 plot(clumped.rast)
-# You can plot the points on top of the raster 
-plot(clumped.spdf, add = TRUE)
+
 # Generate neighbors list 
 nb <- cell2nb(nrow = nrow(clumped.rast), ncol = ncol(clumped.rast))
 # To calculate neighbors for queen configuration
@@ -339,6 +349,7 @@ joincount.mc(as.factor(clumped.rast@data@values), lwb, nsim = 999, alternative =
 joincount.mc(as.factor(clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
 >>>>BRENNA WHY IS THERE A PLOT OF POINTS
+**removed
 >>>>>GREG EXPLAIN INTERPREATION 
 
 This is for a dataset with different distributions
@@ -355,8 +366,7 @@ v_clumped.rast<-rasterize(v_clumped.spdf, r, field = 1)
 v_clumped.rast[is.na(v_clumped.rast)] <- 0
 # You can plot the result
 plot(v_clumped.rast)
-# You can plot the points on top of the raster 
-plot(v_clumped.spdf, add = TRUE)
+
 
 # Generate neighbors list 
 nb <- cell2nb(nrow = nrow(v_clumped.rast), ncol = ncol(v_clumped.rast))
@@ -392,8 +402,7 @@ unif.rast[is.na(unif.rast)] <- 0
 
 # You can plot the result
 plot(unif.rast)
-# You can plot the points on top of the raster 
-plot(unif.spdf, add = TRUE)
+
 
 # Generate neighbors list 
 nb <- cell2nb(nrow = nrow(unif.rast), ncol = ncol(unif.rast))
@@ -417,8 +426,7 @@ joincount.mc(as.factor(unif.rast@data@values), lwb.queen, nsim = 999, alternativ
 While join count statistics is powerful for prescence/abscence and character attributes, most of the time ecology deals with continuous data and many variables. Statics such as Moran's I and Geary's C are often used for to calculate spatial autocorrelation. Using the Harvard Forest example, we can calculate both statistics. 
 
 ```{r}
-# Use the function 'sample' to get random sample of points; this is done on 
-# a SpatialPointsDataFrame , but could also be run on a regular dataframe 
+# Use the function 'sample' to get random sample of points; this is done on a SpatialPointsDataFrame , but could also be run on a regular dataframe 
 acru.sample <- acru.spdf[sample(1:nrow(acru.spdf), 300, replace = FALSE), ] 
 # plot(acru.sample) #plot if you want to see waht the random sample of data # looks like
 
@@ -428,6 +436,7 @@ We will use the package spdep. We can use other packages for these statistics. s
 
 Moran's I
 ```{r}
+moran.out.acru<-moran.test(acru$dbh91, nb2listw(nb.acru, style = "B")) 
 acru.moran <- correlog(coordinates(acru.sample), acru.sample$dbh91, method = "Moran", nbclass = NULL, alternative = "two.sided")
 acru.moran
 # Can view the textual results by simply typing 'acru.moran' 
@@ -455,7 +464,7 @@ acru.rast.count
 plot(MoranLocal(acru.rast.count))
 ```
 >>>>BRENNA THIS AINT WORKING
-
+**it is???
 
 Next we will run the same statistical tests as we did with the tree data
 For our random data
@@ -565,12 +574,12 @@ You can also use the data that is already collected to interpolate across to are
 ```{r}
 #first the data we have-this is our original raster for the acru trees
 plot(acru.spdf, col=acru.spdf$dbh91)
-g<- ggplot(data=acru, aes(x=xsite, y=ysite))
-+ geom_tile(mapping= aes(fill=acru.spdf$dbh91))
-+ scale_fill_gradient(low="blue", high="yellow")
+g<- ggplot(data=acru, aes(x=xsite, y=ysite)) + geom_tile(mapping= aes(fill=acru.spdf$dbh91)) + scale_fill_gradient(low="blue", high="yellow")
 g
 ```
->>>>BRENNA GGPLOT DID NOT WORK. ALSO CAN WE PUT THIS LAST AFTER THE STATS. 
+>>>>BRENNA GGPLOT DID NOT WORK.
+***fixed
+>>>>>>>ALSO CAN WE PUT THIS LAST AFTER THE STATS. 
 
 Now that we have seen/remembered what our raster looks like, we will interpolate our data to the surrounding areas. This will use the data we have and use distance weighting in the background to casue closer points to have more effect on an interpolated point than farther points.
 ```{r}
