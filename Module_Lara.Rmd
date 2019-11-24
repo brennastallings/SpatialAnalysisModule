@@ -601,3 +601,5 @@ unif.geary <- correlog(coordinates(unif.spdf), d$att, method = "Geary", alternat
 plot(unif.geary)
 ```
 
+Citations
+
