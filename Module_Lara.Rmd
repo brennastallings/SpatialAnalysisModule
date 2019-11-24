@@ -263,7 +263,177 @@ joincount.mc(as.factor(acru.rast@data@values), lwb, nsim = 999, alternative = "g
 joincount.mc(as.factor(acru.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
 Now lets break this methodology down so that we can apply it to our own data for join count statistics. 
+We will be using data created for this module, which is in the repository.
+To start we will pull in a dataset with a random distribution
+```{r}
+f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+d
+```
+This is to rasterize the data
+```{r}
+random.spdf <- cbind(d$x,d$y)
 
+#Define the extent for the join count analyses
+jc.extent <- extent(0,100,0,100)
+#set up a blank raster
+r <- raster(nrows=100, ncols=100, ext=jc.extent)
+
+random.rast<-rasterize(random.spdf, r, field = 1)
+random.rast[is.na(random.rast)] <- 0
+# You can plot the result
+plot(random.rast)
+# You can plot the points on top of the raster 
+plot(random.spdf, add = TRUE)
+
+# Generate neighbors list 
+nb <- cell2nb(nrow = nrow(random.rast), ncol = ncol(random.rast))
+# To calculate neighbors for queen configuration
+nb.queen <- cell2nb(nrow = nrow(random.rast), ncol = ncol(random.rast), type = "queen")
+# Convert the neighbors list to a 'weights' list;
+lwb <- nb2listw(nb, style = "B")
+lwb.queen <- nb2listw(nb.queen, style = "B")
+
+# First, the regular join count test for random data (Testing the hypothesis
+# of aggregation among like categories; add the argument 'alternative='less'
+# to reverse this)
+joincount.test(as.factor(random.rast@data@values), lwb, alternative = "greater")
+# Second, the permutation-based jon count test; similar to above, and you
+# can adjust the number of simulations with the 'nsim' argument
+joincount.mc(as.factor(random.rast@data@values), lwb, nsim = 999, alternative = "greater")
+# Can also compute these for the queen setup; for example, with the
+# permutation test:
+joincount.mc(as.factor(random.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
+```
+
+This is the data where everything is clumped
+```{r echo=F}
+c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
+e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+e
+```
+Rasterization
+```{r echo=F}
+clumped.spdf <- cbind(e$x,e$y)
+
+#Define the extent for the join count analyses
+jc.extent <- extent(0,100,0,100)
+#set up a blank raster
+r <- raster(nrows=100, ncols=100, ext=jc.extent)
+
+clumped.rast<-rasterize(clumped.spdf, r, field = 1)
+clumped.rast[is.na(clumped.rast)] <- 0
+```
+```{r}
+# You can plot the result
+plot(clumped.rast)
+# You can plot the points on top of the raster 
+plot(clumped.spdf, add = TRUE)
+```
+```{r echo=F}
+# Generate neighbors list 
+nb <- cell2nb(nrow = nrow(clumped.rast), ncol = ncol(clumped.rast))
+# To calculate neighbors for queen configuration
+nb.queen <- cell2nb(nrow = nrow(clumped.rast), ncol = ncol(clumped.rast), type = "queen")
+# Convert the neighbors list to a 'weights' list;
+lwb <- nb2listw(nb, style = "B")
+lwb.queen <- nb2listw(nb.queen, style = "B")
+#join Counts
+joincount.test(as.factor(clumped.rast@data@values), lwb, alternative = "greater")
+# Second, the permutation-based jon count test; similar to above, and you
+# can adjust the number of simulations with the 'nsim' argument
+joincount.mc(as.factor(clumped.rast@data@values), lwb, nsim = 999, alternative = "greater")
+# Can also compute these for the queen setup; for example, with the
+# permutation test:
+joincount.mc(as.factor(clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
+```
+
+This is for a dataset with different distributions
+```{r}
+m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_ExtraClumped")
+n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+n
+```
+```{r echo=F}
+#Rasterize
+v_clumped.spdf <- cbind(n$x,n$y)
+
+#Define the extent for the join count analyses
+jc.extent <- extent(0,100,0,100)
+#set up a blank raster
+r <- raster(nrows=100, ncols=100, ext=jc.extent)
+
+v_clumped.rast<-rasterize(v_clumped.spdf, r, field = 1)
+v_clumped.rast[is.na(v_clumped.rast)] <- 0
+```
+```{r}
+# You can plot the result
+plot(v_clumped.rast)
+# You can plot the points on top of the raster 
+plot(v_clumped.spdf, add = TRUE)
+```
+```{r echo=F}
+# Generate neighbors list 
+nb <- cell2nb(nrow = nrow(v_clumped.rast), ncol = ncol(v_clumped.rast))
+# To calculate neighbors for queen configuration
+nb.queen <- cell2nb(nrow = nrow(v_clumped.rast), ncol = ncol(v_clumped.rast), type = "queen")
+# Convert the neighbors list to a 'weights' list;
+lwb <- nb2listw(nb, style = "B")
+lwb.queen <- nb2listw(nb.queen, style = "B")
+```
+```{r}
+#join Counts
+joincount.test(as.factor(v_clumped.rast@data@values), lwb, alternative = "greater")
+# Second, the permutation-based jon count test; similar to above, and you
+# can adjust the number of simulations with the 'nsim' argument
+joincount.mc(as.factor(v_clumped.rast@data@values), lwb, nsim = 999, alternative = "greater")
+# Can also compute these for the queen setup; for example, with the
+# permutation test:
+joincount.mc(as.factor(v_clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
+```
+This is uniformly distributed data
+```{r}
+u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
+v <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+v
+```
+Rasterize
+```{r echo=F}
+unif.spdf <- cbind(v$x,v$y)
+
+#Define the extent for the join count analyses
+jc.extent <- extent(0,100,0,100)
+#set up a blank raster
+r <- raster(nrows=100, ncols=100, ext=jc.extent)
+
+unif.rast<-rasterize(unif.spdf, r, field = 1)
+unif.rast[is.na(unif.rast)] <- 0
+```
+```{r}
+# You can plot the result
+plot(unif.rast)
+# You can plot the points on top of the raster 
+plot(unif.spdf, add = TRUE)
+```
+```{r echo=F}
+# Generate neighbors list 
+nb <- cell2nb(nrow = nrow(unif.rast), ncol = ncol(unif.rast))
+# To calculate neighbors for queen configuration
+nb.queen <- cell2nb(nrow = nrow(unif.rast), ncol = ncol(unif.rast), type = "queen")
+# Convert the neighbors list to a 'weights' list;
+lwb <- nb2listw(nb, style = "B")
+lwb.queen <- nb2listw(nb.queen, style = "B")
+```
+```{r}
+#join Counts
+joincount.test(as.factor(unif.rast@data@values), lwb, alternative = "greater")
+# Second, the permutation-based jon count test; similar to above, and you
+# can adjust the number of simulations with the 'nsim' argument
+joincount.mc(as.factor(unif.rast@data@values), lwb, nsim = 999, alternative = "greater")
+# Can also compute these for the queen setup; for example, with the
+# permutation test:
+joincount.mc(as.factor(unif.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
+```
 While join count statistics is powerful for prescence/abscence and character attributes, most of the time ecology deals with continuous data and many variables. Statics such as Moran's I and Geary's C are often used for to calculate spatial autocorrelation. Using the Harvard Forest example, we can calculate both statistics by taking a subset of the tree data for a species. 
 
 ```{r}
@@ -369,37 +539,7 @@ plot(P.idw)
 
 
 **This will need to be moved later, but here is the data for the original data
-We will be using data created for this module, which is in the repository.
-To start we will pull in a dataset with a random distribution
-```{r}
-f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
-d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
-d
-```
-This is to rasterize the data
-```{r}
-random.spdf <- cbind(d$x,d$y)
 
-#Define the extent for the join count analyses
-jc.extent <- extent(0,100,0,100)
-#set up a blank raster
-r <- raster(nrows=100, ncols=100, ext=jc.extent)
-
-random.rast<-rasterize(random.spdf, r, field = 1)
-random.rast[is.na(random.rast)] <- 0
-# You can plot the result
-plot(random.rast)
-# You can plot the points on top of the raster 
-plot(random.spdf, add = TRUE)
-
-# Generate neighbors list 
-nb <- cell2nb(nrow = nrow(random.rast), ncol = ncol(random.rast))
-# To calculate neighbors for queen configuration
-nb.queen <- cell2nb(nrow = nrow(random.rast), ncol = ncol(random.rast), type = "queen")
-# Convert the neighbors list to a 'weights' list;
-lwb <- nb2listw(nb, style = "B")
-lwb.queen <- nb2listw(nb.queen, style = "B")
-```
 Next we will run the same statistical tests as we did with the tree data
 ```{r}
 #Moran's I
@@ -423,36 +563,7 @@ plot(random.geary)
 
 
 
-This is the data where everything is clumped
-```{r}
-c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
-e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
-e
-```
-Rasterization
-```{r}
-clumped.spdf <- cbind(e$x,e$y)
 
-#Define the extent for the join count analyses
-jc.extent <- extent(0,100,0,100)
-#set up a blank raster
-r <- raster(nrows=100, ncols=100, ext=jc.extent)
-
-clumped.rast<-rasterize(clumped.spdf, r, field = 1)
-clumped.rast[is.na(clumped.rast)] <- 0
-# You can plot the result
-plot(clumped.rast)
-# You can plot the points on top of the raster 
-plot(clumped.spdf, add = TRUE)
-
-# Generate neighbors list 
-nb <- cell2nb(nrow = nrow(clumped.rast), ncol = ncol(clumped.rast))
-# To calculate neighbors for queen configuration
-nb.queen <- cell2nb(nrow = nrow(clumped.rast), ncol = ncol(clumped.rast), type = "queen")
-# Convert the neighbors list to a 'weights' list;
-lwb <- nb2listw(nb, style = "B")
-lwb.queen <- nb2listw(nb.queen, style = "B")
-```
 Next we will run the same statistical tests as we did with the tree data
 ```{r}
 #Moran's I
@@ -471,36 +582,7 @@ clumped.geary <- correlog(coordinates(clumped.spdf), d$att, method = "Geary", al
 plot(clumped.geary)
 ```
 
-This is for a dataset with different distributions
-```{r}
-m <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_ExtraClumped")
-n <- read.csv(m, header = TRUE, sep = ",", stringsAsFactors = FALSE)
-n
-```
-Rasterize
-```{r}
-v_clumped.spdf <- cbind(n$x,n$y)
 
-#Define the extent for the join count analyses
-jc.extent <- extent(0,100,0,100)
-#set up a blank raster
-r <- raster(nrows=100, ncols=100, ext=jc.extent)
-
-v_clumped.rast<-rasterize(v_clumped.spdf, r, field = 1)
-v_clumped.rast[is.na(v_clumped.rast)] <- 0
-# You can plot the result
-plot(v_clumped.rast)
-# You can plot the points on top of the raster 
-plot(v_clumped.spdf, add = TRUE)
-
-# Generate neighbors list 
-nb <- cell2nb(nrow = nrow(v_clumped.rast), ncol = ncol(v_clumped.rast))
-# To calculate neighbors for queen configuration
-nb.queen <- cell2nb(nrow = nrow(v_clumped.rast), ncol = ncol(v_clumped.rast), type = "queen")
-# Convert the neighbors list to a 'weights' list;
-lwb <- nb2listw(nb, style = "B")
-lwb.queen <- nb2listw(nb.queen, style = "B")
-```
 Next we will run the same statistical tests as we did with the tree data
 ```{r}
 #Moran's I
@@ -520,35 +602,7 @@ plot(v_clumped.geary)
 ```
 
 This is for a dataset with uniform distributions
-```{r}
-u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
-v <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
-v
-```
-Rasterize
-```{r}
-unif.spdf <- cbind(v$x,v$y)
 
-#Define the extent for the join count analyses
-jc.extent <- extent(0,100,0,100)
-#set up a blank raster
-r <- raster(nrows=100, ncols=100, ext=jc.extent)
-
-unif.rast<-rasterize(unif.spdf, r, field = 1)
-unif.rast[is.na(unif.rast)] <- 0
-# You can plot the result
-plot(unif.rast)
-# You can plot the points on top of the raster 
-plot(unif.spdf, add = TRUE)
-
-# Generate neighbors list 
-nb <- cell2nb(nrow = nrow(unif.rast), ncol = ncol(unif.rast))
-# To calculate neighbors for queen configuration
-nb.queen <- cell2nb(nrow = nrow(unif.rast), ncol = ncol(unif.rast), type = "queen")
-# Convert the neighbors list to a 'weights' list;
-lwb <- nb2listw(nb, style = "B")
-lwb.queen <- nb2listw(nb.queen, style = "B")
-```
 Next we will run the same statistical tests as we did with the tree data
 ```{r}
 #Moran's I
