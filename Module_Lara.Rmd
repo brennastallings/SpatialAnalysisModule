@@ -15,7 +15,7 @@ When talking about anything spatial we need to consider that variables are in fa
 <https://cran.r-project.org/web/packages/lctools/vignettes/SpatialAutocorrelation.pdf>
 In order to access this correlation we need to understand how the features or objects with the variable are related to each other. In other words, we need a way to describe using statistics the spatial distribution of objects with one or more attributes.
 
-There are a few statistics used to assess patterns and spatial relations of objects. We will cover the most common types of statistics used for spatial autocorrelation in this module. 
+There are a few statistics used to assess patterns and spatial relations of objects. We will cover the most common types of statistics used for spatial autocorrelation in this module.
 
 *Join Count Statistics
 *Global Moran's I
@@ -37,7 +37,7 @@ In general there are three patterns that the above statistics can distinguish be
   -Spatial scale: local versus global
   -All objects are related spatially, but closer objects are more closely related
   -Distribution types (clustered, uniform, random)
-  
+
 -What are the different statistics and what are each used for?
 -Rasterizing your data
   -Matrix types: Inverse distance weighting
@@ -63,15 +63,16 @@ Local G
   -GWR
 -Citations
 
-Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis. 
+Much of spatial analysis deals with understanding how objects or attributes are clustered together. In general, we consider random distributions, uniform distributions, and clustered distributions to be the focus of our analysis.
 
-<<<<<<GREG ADD EXAMPLE OF DIFFERENT DISTRIBUTIONS 
+<<<<<<GREG ADD EXAMPLE OF DIFFERENT DISTRIBUTIONS
 
-The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space. 
-When dealing with spatial data we must also considered that objects next to each other may have influence on one another. That is, objects in space are not, in fact indepdent, but are rather dependent and the intensity of dependencies varies by how close two objects or neighborhoods are to each other. The statistics must reflect this dependency and are the proccess of relating clustered values together is known as spatial autocorrelation. 
+The statistics used to analyze these clusters are therefore, trying to tell us how closely related objects are in space.
+When dealing with spatial data we must also considered that objects next to each other may have influence on one another. That is, objects in space are not, in fact indepdent, but are rather dependent and the intensity of dependencies varies by how close two objects or neighborhoods are to each other. The statistics must reflect this dependency and are the proccess of relating clustered values together is known as spatial autocorrelation.
 
 We need a few packages
 ```{r}
+
 library(curl)
 library(ape) #you may need to install this package first
 library(spdep) #for spatial autocorrelation
@@ -105,7 +106,7 @@ u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModu
 v <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 plot(v$x, v$y)
 
-#real data from Harvard forest on tree distributions. 
+#real data from Harvard forest on tree distributions.
 HTrees <- read.csv("http://harvardforest.fas.harvard.edu/data/p03/hf032/hf032-01-tree.csv")
 ```
 
@@ -115,10 +116,13 @@ vectors vs Rasters
 There are 2 main types of data that can be used with spatial data, called vectors and rasters. Vector data is when the data is used as points, lines, and polygons, such as our orginal data, which is stored as points. We then convert the data to raster format for our statistics.
 The main pros of using polygon data is that it is more spatially accurate. The polygons can be created to fit the data, and uses smaller fie/storage size. However, vector data doesnt work well with continuous data.
 
-
 The point to polygon transformation can be particularly useful. Polygons help visualize nearest neighbors. One type of polygon is the priximity polygon, or Voronoi polygon, which has each polygon surrounding the area of an object or point.
 
 
+
+```{r}
+poly2<- voronoi(d)
+plot(poly2)
 
 ```{r}
 poly2<- voronoi(d)
@@ -132,15 +136,15 @@ plot(poly3)
 
 ```
 
-Raster data uses a matrix of cells to represent the data, using either categorical or continuous variables. It works better than polygons for continuous data such as elevation and temperature. Raster data can be used in a few ways. The data can be assumed to exist at the center of the cell or across the whole cell. You can define a cell's contents based on either the center point, majority, or average value. Raster data is useful for very large datasets and images, espeically in remote sensing data. 
+Raster data uses a matrix of cells to represent the data, using either categorical or continuous variables. It works better than polygons for continuous data such as elevation and temperature. Raster data can be used in a few ways. The data can be assumed to exist at the center of the cell or across the whole cell. You can define a cell's contents based on either the center point, majority, or average value. Raster data is useful for very large datasets and images, espeically in remote sensing data.
 
-Raster data also has a standard cell size across the area which is defined by the user. The size of the cells determines the spatial resolution, and therefore the spatial scale to which patterns are accurate. You need to pay attention to and carefully consider cell size for rasters. Picking the wrong size of cells can lead to pixelation of data and loss of information, while using a very small cell size can make the file size unweildy. 
+Raster data also has a standard cell size across the area which is defined by the user. The size of the cells determines the spatial resolution, and therefore the spatial scale to which patterns are accurate. You need to pay attention to and carefully consider cell size for rasters. Picking the wrong size of cells can lead to pixelation of data and loss of information, while using a very small cell size can make the file size unweildy.
 
 ![Example for Raster size importance](Images/raster_ex.jpg)
 
-We will be using raster data for a couple of reasons. The main ones being that some of the packages that we use in this modlue require raster data to work, so we have no choice, and that it makes you learn how to convert between the data types. 
+We will be using raster data for a couple of reasons. The main ones being that some of the packages that we use in this modlue require raster data to work, so we have no choice, and that it makes you learn how to convert between the data types.
 
-First let us look at a simple dataset of 500 points that we created to mimic spatial data. Each point has x and y values, which represent a longitude and latitude, and an attribute, which we will use later. This data was made to be randomly distributed. 
+First let us look at a simple dataset of 500 points that we created to mimic spatial data. Each point has x and y values, which represent a longitude and latitude, and an attribute, which we will use later. This data was made to be randomly distributed.
 ```{r echo=F}
 plot(d[,2], d[,3], main="Random Scatterplot Example",
      xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100))
@@ -160,7 +164,7 @@ random.rast1[is.na(random.rast1)] <- 0
 plot(random.rast1)
 ```
 
-As in the picture we showed earlier, changing the size of cells in the raster changes the pixelation of the output, this one with a cell size of 3.3 x 3.3 pixels instead of 1 x 1 pixels in the first. Visually compare the two different rasters. 
+As in the picture we showed earlier, changing the size of cells in the raster changes the pixelation of the output, this one with a cell size of 3.3 x 3.3 pixels instead of 1 x 1 pixels in the first. Visually compare the two different rasters.
 ```{r}
 #First we get the needed columns from the data into a new format for the package
 random.spdf <- cbind(d$x,d$y)
@@ -204,24 +208,24 @@ plot(boundaries(clumped.rast, classes=T))
 One thing to keep in mind with all the stats that we will be using is the difference between local and global stats and what they are calculating. Many of the functions we will be using can calculate either one, but you need to know which one you want.
 Global tests look for clustering within your entire dataset, while local stats can distinguish clustering in smaller subsections, working at a smaller scale.  
 
-<<<<GREG ADD PHOTO/EXPLANATION? 
+<<<<GREG ADD PHOTO/EXPLANATION?
 
 #Spatial Weight (GREG THERE ARE SOME THINGS LATER ON THAT CAN BE MOVE UP HERE)
 
 Different ways we can compare neighbors or define neighborhoods
--Define what a neighborhood is 
+-Define what a neighborhood is
 -Inverse distance weighting as the most common
 -Rook, queen, bishop moves for raster data <<<<GREG EXAMPLE!!!!
 -Distance bands (discrete neighborhoods define by distance from a cell or polygon) <<<<EXAMPLE
--Nearest K neighbor 
+-Nearest K neighbor
 
 #Come on kids, Lets play with stats now!
 
-Let us start with join count analysis. This type of analysis looks at sets of data that have character attributes and spatial location. Character attributes can include prescence/abscence data as well as characterizations such as blue versus red states. Join count statistics can tell you whether your data is clumped, randomly dispersed, or uniformly dispersed. Join count statistics are typically used when dealing with polygons rather than points. 
+Let us start with join count analysis. This type of analysis looks at sets of data that have character attributes and spatial location. Character attributes can include prescence/abscence data as well as characterizations such as blue versus red states. Join count statistics can tell you whether your data is clumped, randomly dispersed, or uniformly dispersed. Join count statistics are typically used when dealing with polygons rather than points.
 
-To start we will use tree data from Harvard and then apply this methodology to our own data that we created. 
+To start we will use tree data from Harvard and then apply this methodology to our own data that we created.
 
-First we need to create a raster for our data. Be careful when you define your raster size as the size may be dependent on the type of data you have and the data limitations. 
+First we need to create a raster for our data. Be careful when you define your raster size as the size may be dependent on the type of data you have and the data limitations.
 
 ```{r}
 # Create subset of data for Acer rubrum
@@ -274,13 +278,13 @@ joincount.mc(as.factor(acru.rast@data@values), lwb.queen.acru, nsim = 999, alter
 <<<<<<GREG DEFINE MONTE CARLO VS NORMAL METHODS
 <<<<<<INTERPRETATION OF DATA
 
-Now lets break this methodology down so that we can apply it to our own data for join count statistics. 
+Now lets break this methodology down so that we can apply it to our own data for join count statistics.
 
 To start we will look at our random data.
 
 First we rasterize
-Second we will define our neighborhoods 
-Third we will run our statistics 
+Second we will define our neighborhoods
+Third we will run our statistics
 ```{r}
 random.spdf <- as.data.frame(cbind(d$x,d$y))
 random.df<- as.data.frame(cbind(d$x,d$y,d$att))
@@ -296,7 +300,7 @@ random.rast[is.na(random.rast)] <- 0
 # You can plot the result
 plot(random.rast)
 
-# Generate neighbors list 
+# Generate neighbors list
 nb.rand <- cell2nb(nrow = nrow(random.rast), ncol = ncol(random.rast), type="rook")
 # To calculate neighbors for queen configuration
 nb.rand.queen <- cell2nb(nrow = nrow(random.rast), ncol = ncol(random.rast), type = "queen")
@@ -332,7 +336,7 @@ clumped.rast[is.na(clumped.rast)] <- 0
 # You can plot the result
 plot(clumped.rast)
 
-# Generate neighbors list 
+# Generate neighbors list
 nb.clump <- cell2nb(nrow = nrow(clumped.rast), ncol = ncol(clumped.rast))
 # To calculate neighbors for queen configuration
 nb.clump.queen <- cell2nb(nrow = nrow(clumped.rast), ncol = ncol(clumped.rast), type = "queen")
@@ -349,7 +353,7 @@ joincount.mc(as.factor(clumped.rast@data@values), lwb, nsim = 999, alternative =
 joincount.mc(as.factor(clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
 
->>>>>GREG EXPLAIN INTERPREATION 
+>>>>>GREG EXPLAIN INTERPREATION
 
 This is for a dataset with a single, very clumped distribution
 ```{r echo=F}
@@ -366,8 +370,9 @@ v_clumped.rast[is.na(v_clumped.rast)] <- 0
 # You can plot the result
 plot(v_clumped.rast)
 
+Now lets break this methodology down so that we can apply it to our own data for join count statistics.
 
-# Generate neighbors list 
+# Generate neighbors list
 nb.vc <- cell2nb(nrow = nrow(v_clumped.rast), ncol = ncol(v_clumped.rast))
 # To calculate neighbors for queen configuration
 nb.vc.queen <- cell2nb(nrow = nrow(v_clumped.rast), ncol = ncol(v_clumped.rast), type = "queen")
@@ -384,7 +389,7 @@ joincount.mc(as.factor(v_clumped.rast@data@values), lwb, nsim = 999, alternative
 # permutation test:
 joincount.mc(as.factor(v_clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
->>>>GREG 1 sentence interpretation 
+>>>>GREG 1 sentence interpretation
 
 
 This is uniformly distributed data
@@ -403,7 +408,7 @@ unif.rast[is.na(unif.rast)] <- 0
 plot(unif.rast)
 
 
-# Generate neighbors list 
+# Generate neighbors list
 nb.unif <- cell2nb(nrow = nrows(unif.rast), ncol = ncols(unif.rast))
 # To calculate neighbors for queen configuration
 nb.unif.queen <- cell2nb(nrow = nrow(unif.rast), ncol = ncol(unif.rast), type = "queen")
@@ -420,32 +425,32 @@ joincount.mc(as.factor(unif.rast@data@values), lwb, nsim = 999, alternative = "g
 # permutation test:
 joincount.mc(as.factor(unif.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
->>>>>GREG EXPLAIN INTERPRETATION 
+>>>>>GREG EXPLAIN INTERPRETATION
 
-While join count statistics is powerful for prescence/abscence and character attributes, most of the time ecology deals with continuous data and many variables. Statics such as Moran's I and Geary's C are often used for to calculate spatial autocorrelation. Using the Harvard Forest example, we can calculate both statistics. 
+While join count statistics is powerful for prescence/abscence and character attributes, most of the time ecology deals with continuous data and many variables. Statics such as Moran's I and Geary's C are often used for to calculate spatial autocorrelation. Using the Harvard Forest example, we can calculate both statistics.
 
 ```{r}
-# Use the function 'sample' to get random sample of points; this is done on a SpatialPointsDataFrame , but could also be run on a regular dataframe 
-acru.sample <- acru.spdf[sample(1:nrow(acru.spdf), 500, replace = FALSE), ] 
+# Use the function 'sample' to get random sample of points; this is done on a SpatialPointsDataFrame , but could also be run on a regular dataframe
+acru.sample <- acru.spdf[sample(1:nrow(acru.spdf), 500, replace = FALSE), ]
 # plot(acru.sample) #plot if you want to see waht the random sample of data # looks like
 
 ```
 
-We will use the package spdep. We can use other packages for these statistics. spdep allows for more customization, espeically for distance bands. Distance bands are important as they allow you to define neighborhoods, which determine how far from a point its value will affect other values. In ecology these distance bands can include how far an animal can travel, or perhaps how far a pollutant can travel in a body of water before it's toxicity disipates. 
+We will use the package spdep. We can use other packages for these statistics. spdep allows for more customization, espeically for distance bands. Distance bands are important as they allow you to define neighborhoods, which determine how far from a point its value will affect other values. In ecology these distance bands can include how far an animal can travel, or perhaps how far a pollutant can travel in a body of water before it's toxicity disipates.
 
 Moran's I
 ```{r}
-moran.out.acru <-moran.test(acru.sample$dbh91, nb2listw(nb.queen, style = "B")) 
+moran.out.acru <-moran.test(acru.sample$dbh91, nb2listw(nb.queen, style = "B"))
 moran.out.acru
 acru.moran <- correlog(coordinates(acru.sample), acru.sample$dbh91, method = "Moran", nbclass = NULL, alternative = "two.sided")
 #acru.moran
-# Can view the textual results by simply typing 'acru.moran' 
+# Can view the textual results by simply typing 'acru.moran'
 plot(acru.moran) #plots the results
 moran.acru.mc<- moran.mc(acru.sample$dbh91, nb2listw(nb.acru, style = "B"), nsim=99)
 moran.acru.mc
 ```
 >>>>GREG EXPLALIN MORANS I INTERPREATION AND THE GRAPH
->>>>BRENNA I LIKE THE CORRELOGRAMS BUT WE SHOULD ADD IN THE ACTUAL STATISTICS TEST AS WELL FOR MORAN.TEST AND MORAN.MC. SAME WITH LISA AND GEARY C TESTS. 
+>>>>BRENNA I LIKE THE CORRELOGRAMS BUT WE SHOULD ADD IN THE ACTUAL STATISTICS TEST AS WELL FOR MORAN.TEST AND MORAN.MC. SAME WITH LISA AND GEARY C TESTS.
 
 
 Geary C
@@ -475,10 +480,10 @@ For our random data
 ```{r}
 #Moran's I
 random.moran <- correlog(coordinates(unif.spdf), d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'random.moran' 
+# Can view the textual results by simply typing 'random.moran'
 plot(random.moran) #plots the results
 #is this right?
-moran.out.rand <- moran.test(random.df$V3, nb2listw(nb.rand, style = "B")) 
+moran.out.rand <- moran.test(random.df$V3, nb2listw(nb.rand, style = "B"))
 moran.out.rand
 moran.rand.mc<- moran.mc(random.df$V3, nb2listw(nb.rand, style = "B"), nsim=99)
 moran.rand.mc
@@ -500,13 +505,13 @@ rand.geary.mc
 
 For our clumped data
 ```{r}
-#Moran's 
-moran.out.clump <- moran.test(clumped.df$V3, nb2listw(nb.clump, style = "B")) 
+#Moran's
+moran.out.clump <- moran.test(clumped.df$V3, nb2listw(nb.clump, style = "B"))
 moran.out.clump
 moran.clump.mc<- moran.mc(clumped.df$V3, nb2listw(nb.clump, style = "B"), nsim=99)
 moran.clump.mc
 clumped.moran <- correlog(coordinates(clumped.spdf), e$X.1, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'random.moran' 
+# Can view the textual results by simply typing 'random.moran'
 plot(clumped.moran) #plots the results
 #is this right?
 
@@ -529,10 +534,10 @@ For our very clumped data
 ```{r}
 #Moran's I
 v_clumped.moran <- correlog(v_clumped.spdf, n$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'random.moran' 
+# Can view the textual results by simply typing 'random.moran'
 plot(v_clumped.moran) #plots the results
 #is this right?
-moran.out.vc <- moran.test(v_clump.df$V3, nb2listw(nb.vc, style = "B")) 
+moran.out.vc <- moran.test(v_clump.df$V3, nb2listw(nb.vc, style = "B"))
 moran.out.vc
 moran.vc.mc<- moran.mc(v_clump.df$V3, nb2listw(nb.vc, style = "B"), nsim=99)
 moran.vc.mc
@@ -549,14 +554,15 @@ geary.out.vc
 vc.geary.mc<- geary.mc(v_clump.df$V3, nb2listw(nb.vc, style = "B"), nsim=99)
 vc.geary.mc
 ```
+>>>>GREG 1 sentence interpretation
 
 This is for a dataset with uniform distributions
 ```{r}
 #Moran's I
 unif.moran <- correlog(unif.spdf, v$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
-# Can view the textual results by simply typing 'random.moran' 
+# Can view the textual results by simply typing 'random.moran'
 plot(unif.moran) #plots the results
-moran.out.unif <- moran.test(unif.df$V3, nb2listw(nb.unif, style = "B")) 
+moran.out.unif <- moran.test(unif.df$V3, nb2listw(nb.unif, style = "B"))
 moran.out.unif
 moran.unif.mc<- moran.mc(unif.df$V3, nb2listw(nb.unif, style = "B"), nsim=99)
 moran.unif.mc
@@ -570,12 +576,12 @@ moran.unif.mc
 unif.geary <- correlog(coordinates(unif.spdf), v$att, method = "Geary", alternative = "two.sided")
 plot(unif.geary)
 ```
->>>>>BRENNA THIS AINT WORKING 
+>>>>>BRENNA THIS AINT WORKING
 
-Now we will look at Get Ord General G and G star statistics. The statistical tests before have told us if our data is clustered, whether like values are within a similar region. Now we want to know where hot and cold spots occur. hot and cold spots are areas where values are high and low. This is particularly useful with continous data where you have a gradient of different values. 
+Now we will look at Get Ord General G and G star statistics. The statistical tests before have told us if our data is clustered, whether like values are within a similar region. Now we want to know where hot and cold spots occur. hot and cold spots are areas where values are high and low. This is particularly useful with continous data where you have a gradient of different values.
 
 
->>>>>>WE NEED TO ADD LOCAL G IN HERE TO 
+>>>>>>WE NEED TO ADD LOCAL G IN HERE TO
 
 #What are Weight Counts? And is impolite to ask?
 
@@ -602,7 +608,7 @@ Inverse distance matricies and distance weighting assume that points that are cl
 
 
 **This is me trying interpolation- The 2 plots have different levels of effect across points, making smoother, or less smooth images
-You can also use the data that is already collected to interpolate across to areas for which you have no data.We will use the example from the tree data, though it is admittedly a strange example, as trees dont cover entire areas. 
+You can also use the data that is already collected to interpolate across to areas for which you have no data.We will use the example from the tree data, though it is admittedly a strange example, as trees dont cover entire areas.
 ```{r}
 #first the data we have-this is our original raster for the acru trees
 plot(acru.spdf, col=acru.spdf$dbh91)
@@ -611,7 +617,7 @@ g
 ```
 >>>>BRENNA GGPLOT DID NOT WORK.
 ***fixed
->>>>>>>ALSO CAN WE PUT THIS LAST AFTER THE STATS. 
+>>>>>>>ALSO CAN WE PUT THIS LAST AFTER THE STATS.
 
 Now that we have seen/remembered what our raster looks like, we will interpolate our data to the surrounding areas. This will use the data we have and use distance weighting in the background to casue closer points to have more effect on an interpolated point than farther points.
 ```{r}
@@ -649,14 +655,9 @@ plot(P.idw)
 
 
 Citations
-<<<<<<< HEAD
 <https://rdrr.io/rforge/spdep/man/localG.html> For G star
 <https://github.com/r-spatial/spdep/blob/master/man/localG.Rd> For localG
-<https://cran.r-project.org/web/packages/lctools/vignettes/SpatialAutocorrelation.pdf> 
+<https://cran.r-project.org/web/packages/lctools/vignettes/SpatialAutocorrelation.pdf>
 <https://mltconsecol.github.io/TU_LandscapeAnalysis_Documents/Assignments_web/Assignment06_Autocorrelation.pdf> Harvard Trees
-<https://gdmdata.com/media/documents/handouts/2017ASA_FarmToTable_Spatial_correlation.pdf> 
+<https://gdmdata.com/media/documents/handouts/2017ASA_FarmToTable_Spatial_correlation.pdf>
 <https://rstudio-pubs-static.s3.amazonaws.com/223305_944ddc517306448f8fb0d60ca29dd94b.html> Examples for greg?
-
-
-=======
->>>>>>> dae30cae85a084964d5061e14f2ddfa13dc21e99
