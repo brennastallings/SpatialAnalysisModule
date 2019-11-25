@@ -105,6 +105,8 @@ plot(n$x, n$y)
 u <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Uniform")
 v <- read.csv(u, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 plot(v$x, v$y)
+#uf<- curl("#need to add my 500 data")
+u.50<- read.csv(uf, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 
 #real data from Harvard forest on tree distributions.
 HTrees <- read.csv("http://harvardforest.fas.harvard.edu/data/p03/hf032/hf032-01-tree.csv")
@@ -119,10 +121,6 @@ The main pros of using polygon data is that it is more spatially accurate. The p
 The point to polygon transformation can be particularly useful. Polygons help visualize nearest neighbors. One type of polygon is the priximity polygon, or Voronoi polygon, which has each polygon surrounding the area of an object or point.
 
 
-
-```{r}
-poly2<- voronoi(d)
-plot(poly2)
 
 ```{r}
 poly2<- voronoi(d)
@@ -370,8 +368,6 @@ v_clumped.rast[is.na(v_clumped.rast)] <- 0
 # You can plot the result
 plot(v_clumped.rast)
 
-Now lets break this methodology down so that we can apply it to our own data for join count statistics.
-
 # Generate neighbors list
 nb.vc <- cell2nb(nrow = nrow(v_clumped.rast), ncol = ncol(v_clumped.rast))
 # To calculate neighbors for queen configuration
@@ -409,7 +405,7 @@ plot(unif.rast)
 
 
 # Generate neighbors list
-nb.unif <- cell2nb(nrow = nrows(unif.rast), ncol = ncols(unif.rast))
+nb.unif <- cell2nb(nrow = nrow(unif.rast), ncol = ncol(unif.rast))
 # To calculate neighbors for queen configuration
 nb.unif.queen <- cell2nb(nrow = nrow(unif.rast), ncol = ncol(unif.rast), type = "queen")
 # Convert the neighbors list to a 'weights' list;
@@ -473,13 +469,13 @@ acru.rast.count
 plot(MoranLocal(acru.rast.count))
 ```
 >>>>BRENNA THIS AINT WORKING
-**it is???
+
 
 Next we will run the same statistical tests as we did with the tree data
 For our random data
 ```{r}
 #Moran's I
-random.moran <- correlog(coordinates(unif.spdf), d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
+random.moran <- correlog(coordinates(random.spdf), d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
 # Can view the textual results by simply typing 'random.moran'
 plot(random.moran) #plots the results
 #is this right?
@@ -559,7 +555,7 @@ vc.geary.mc
 This is for a dataset with uniform distributions
 ```{r}
 #Moran's I
-unif.moran <- correlog(unif.spdf, v$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
+unif.moran <- correlog(coordinates(unif.spdf), v$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
 # Can view the textual results by simply typing 'random.moran'
 plot(unif.moran) #plots the results
 moran.out.unif <- moran.test(unif.df$V3, nb2listw(nb.unif, style = "B"))
@@ -615,8 +611,7 @@ plot(acru.spdf, col=acru.spdf$dbh91)
 g<- ggplot(data=acru, aes(x=xsite, y=ysite)) + geom_tile(mapping= aes(fill=acru.spdf$dbh91)) + scale_fill_gradient(low="blue", high="yellow")
 g
 ```
->>>>BRENNA GGPLOT DID NOT WORK.
-***fixed
+
 >>>>>>>ALSO CAN WE PUT THIS LAST AFTER THE STATS.
 
 Now that we have seen/remembered what our raster looks like, we will interpolate our data to the surrounding areas. This will use the data we have and use distance weighting in the background to casue closer points to have more effect on an interpolated point than farther points.
