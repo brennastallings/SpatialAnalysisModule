@@ -72,7 +72,6 @@ When dealing with spatial data we must also considered that objects next to each
 
 We need a few packages
 ```{r}
-
 library(curl)
 library(ape) #you may need to install this package first
 library(spdep) #for spatial autocorrelation
@@ -464,7 +463,7 @@ acru.geary.mc
 
 Local Moran's I
 ```{r}
-acru.rast.count <-rasterize(acru.spdf, r, fun=function(x,...)length(x))[[1]]
+acru.rast.count <-rasterize(acru.spdf, r, fun=function(x,...)length(x)[[1]])
 acru.rast.count
 plot(MoranLocal(acru.rast.count))
 ```
@@ -583,14 +582,11 @@ Now we will look at Get Ord General G and G star statistics. The statistical tes
 
 First we need to call in our clumped data
 ```{r}
-c <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Clumped")
-e <- read.csv(c, header = TRUE, sep = ",", stringsAsFactors = FALSE)
-e
 plot(e[,2], e[,3], main="Clumped Data Example",
      xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=e[,4])
 ```
 First we want to make a distance matrix and inverse distance matrix
-I dont want to do this with 500 points, so I am going to cut it down to 5 for now
+I dont want to do this with 500 points, so I am going to cut it down to 500 for now
 ```{r}
 e.small<- sample_n(e[2:3], size=50, replace=F)
 e.dis<- pointDistance(e.small, lonlat=F)
