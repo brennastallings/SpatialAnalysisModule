@@ -10,10 +10,23 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	comment = "##",
+	prompt = FALSE,
+	tidy = TRUE,
+	tidy.opts = list(width.cutoff = 75),
+	fig.path = "img/"
+)
 ```
 
-Topics
+#Spatial Autocorrelation 
+
+## Objectives
+>Explore different methods of spatial Autocorrelation
+
+#Topics
 
 When talking about anything spatial we need to consider that variables are in fact NOT independent of each other. Not only do different variables have an effect on each other, a single variable may affect different points in space. Closer points are more related to each other than points further away and therefore closer points have greater influence on each other. Spatial autocorrelation is therefore "the correlation between the values of a single variable that is strictly due to the proximity of these values in geographical space by introducing a deviation from the assumption of independent observations of classical statistics (Griffith, 2003)."
 <https://cran.r-project.org/web/packages/lctools/vignettes/SpatialAutocorrelation.pdf>
