@@ -100,6 +100,7 @@ When dealing with spatial data we must also considered that objects next to each
 
 We need a few packages
 ```{r}
+suppressPackageStartupMessages({
 library(curl)
 library(ape) #you may need to install this package first
 library(spdep) #for spatial autocorrelation
@@ -110,7 +111,7 @@ library(gstat)
 library(dismo)
 library(igraph)
 library(dplyr)
-library(ggplot2)
+library(ggplot2)})
 ```
 
 
@@ -239,9 +240,25 @@ plot(boundaries(clumped.rast, classes=T))
 One thing to keep in mind with all the stats that we will be using is the difference between local and global stats and what they are calculating. Many of the functions we will be using can calculate either one, but you need to know which one you want.
 Global tests look for clustering within your entire dataset, while local stats can distinguish clustering in smaller subsections, working at a smaller scale.  
 
-<<<<GREG ADD PHOTO/EXPLANATION?
+#Spatial Weight 
 
-#Spatial Weight (GREG THERE ARE SOME THINGS LATER ON THAT CAN BE MOVE UP HERE)
+##What are Weight Counts? And is impolite to ask?
+
+First we need to call in our clumped data
+```{r}
+plot(e[,2], e[,3], main="Clumped Data Example",
+     xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=e[,4])
+```
+First we want to make a distance matrix and inverse distance matrix
+```{r}
+e.small<- sample_n(e[2:3], size=50, replace=F)
+e.dis<- pointDistance(e.small, lonlat=F)
+#make the  matrix
+w<- 1/e.dis
+```
+
+Inverse distance matricies and distance weighting assume that points that are closer togther are more statistically significant.
+
 
 Different ways we can compare neighbors or define neighborhoods
 -Define what a neighborhood is
@@ -579,24 +596,7 @@ vc.geary.mc
 ```
 >>>>GREG 1 sentence interpretation
 
-#What are Weight Counts? And is impolite to ask?
 
-First we need to call in our clumped data
-```{r}
-plot(e[,2], e[,3], main="Clumped Data Example",
-     xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=e[,4])
-```
-First we want to make a distance matrix and inverse distance matrix
-```{r}
-e.small<- sample_n(e[2:3], size=50, replace=F)
-e.dis<- pointDistance(e.small, lonlat=F)
-#make the  matrix
-w<- 1/e.dis
-```
-
-Inverse distance matricies and distance weighting assume that points that are closer togther are more statistically significant.
-
-<<<<<GREG PUT SPATIAL WEIGHTS UP TOP
 
 
 You can also use the data that is already collected to interpolate across to areas for which you have no data. We will use the example from the tree data, though it is admittedly a strange example, as trees dont cover entire areas.
