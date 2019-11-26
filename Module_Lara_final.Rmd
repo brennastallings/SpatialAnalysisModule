@@ -23,19 +23,21 @@ knitr::opts_chunk$set(
 )
 ```
 
-#Spatial Autocorrelation with a group of *MORANS* 
+# Spatial Autocorrelation with a group of *MORANS* 
 
 ***
 
 ## Objectives
+
 >Comparing spatial autocorrelaton statistics 
 
-##Topics
+## Topics
 
 ***
 
+![](Images/spock.jpg)
+
 When talking about anything spatial we need to consider that variables are in fact NOT independent of each other. Not only do different variables have an effect on each other, a single variable may affect different points in space. Closer points are more related to each other than points further away and therefore closer points have greater influence on each other. Spatial autocorrelation is therefore "the correlation between the values of a single variable that is strictly due to the proximity of these values in geographical space by introducing a deviation from the assumption of independent observations of classical statistics (Griffith, 2003)."
-><https://cran.r-project.org/web/packages/lctools/vignettes/SpatialAutocorrelation.pdf>
 
 </br>
 
@@ -48,18 +50,27 @@ There are a few statistics used to assess patterns and spatial relations of obje
 </br>
  
 Join Count Statistics
-*Global Moran's I
-*Geary's C
-*Local Moran's I
+
+* Global Moran's I
+
+* Geary's C
+
+* Local Moran's I
 
 </br>
 
-##Example of Patterns
+## Example of Patterns
+
 ***
+
 In general there are three patterns that the above statistics can distinguish between
+
 </br>
+
 * clustered, clumped, or patchy
+
 * Uniform or even distribution
+
 * Random distribution (no discernable pattern)
 
 ![Example of Patterns](http://ksuweb.kennesaw.edu/~jdirnber/Bio2108/Lecture/LecEcology/52-02-DispersionPatterns-CL.jpg)
@@ -70,33 +81,7 @@ The statistics used to analyze these clusters are therefore, trying to tell us h
 
 When dealing with spatial data we must also considered that objects next to each other may have influence on one another. That is, objects in space are not, in fact indepdent, but are rather dependent and the intensity of dependencies varies by how close two objects or neighborhoods are to each other. The statistics must reflect this dependency and are the proccess of relating clustered values together is known as spatial autocorrelation.
 
-
--What is important when calculating statistics for autocorrelation
-  -Distance between points (defining neighborhoods and distance bands)
-  -Data type (character versus continuous)
-  -Spatial scale: local versus global
-  -All objects are related spatially, but closer objects are more closely related
-  -Distribution types (clustered, uniform, random)
-
--What are the different statistics and what are each used for?
--Rasterizing your data
-  -Matrix types: Inverse distance weighting
--Join Count statics
-  -Chess moves, how this statistics work
-  -Rasterize/display data
-  -Calculate the statistic
--Moran's I (global) and Local Moran's I
-  -Example of distributions???
-  -calculate statistic
-  -display
--Geary C
-  -Example of distributions???
-  -calculate statistic
-  -display
--Interpolation
--Citations
-
-#Getting Data 
+# Getting Data 
 
 We need a few packages
 ```{r}
@@ -116,6 +101,9 @@ library(ggplot2)})
 
 
 Let us pull in our example data sets
+
+![](Images/data.jpg)
+
 ```{r}
 #Random Data
 f <- curl("https://raw.githubusercontent.com/brennastallings/SpatialAnalysisModule/master/Made%20Data/Example_Data_Random")
@@ -141,9 +129,9 @@ HTrees <- read.csv("http://harvardforest.fas.harvard.edu/data/p03/hf032/hf032-01
 ```
 
 
-#Lets talk about Rasterization
+# Lets talk about Rasterization
 
-##Vectors vs Rasters
+## Vectors vs Rasters
 
 There are 2 main types of data that can be used with spatial data, called vectors and rasters. Vector data is when the data is used as points, lines, and polygons, such as our orginal data, which is stored as points. We then convert the data to raster format for our statistics.
 The main pros of using polygon data is that it is more spatially accurate. The polygons can be created to fit the data, and uses smaller fie/storage size. However, vector data doesnt work well with continuous data.
@@ -168,7 +156,10 @@ Raster data uses a matrix of cells to represent the data, using either categoric
 
 Raster data also has a standard cell size across the area which is defined by the user. The size of the cells determines the spatial resolution, and therefore the spatial scale to which patterns are accurate. You need to pay attention to and carefully consider cell size for rasters. Picking the wrong size of cells can lead to pixelation of data and loss of information, while using a very small cell size can make the file size unweildy.
 
-##Brennas Pet Potato
+## Brennas Pet Potato
+
+</br>
+
 ![Example for Raster size importance](Images/raster_ex.jpg)
 
 We will be using raster data for a couple of reasons. The main ones being that some of the packages that we use in this modlue require raster data to work, so we have no choice, and that it makes you learn how to convert between the data types.
@@ -235,21 +226,24 @@ plot(boundaries(clumped.rast, classes=T))
 ```
 
 
-#Local v Global
+# Local v Global
 
 One thing to keep in mind with all the stats that we will be using is the difference between local and global stats and what they are calculating. Many of the functions we will be using can calculate either one, but you need to know which one you want.
 Global tests look for clustering within your entire dataset, while local stats can distinguish clustering in smaller subsections, working at a smaller scale.  
 
-#Spatial Weight 
+# Spatial Weight 
 
-##What are Weight Counts? And is impolite to ask?
+## What are Weight Counts? And is impolite to ask?
 
 First we will look at our clumped data
-```{r}
+
+```{r echo=F}
 plot(e[,2], e[,3], main="Clumped Data Example",
      xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=e[,4])
 ```
+
 Next, we want to make a distance matrix and inverse distance matrix
+
 ```{r}
 e.small<- sample_n(e[2:3], size=5, replace=F)
 e.dis<- pointDistance(e.small, lonlat=F)
@@ -265,11 +259,11 @@ Different ways we can compare neighbors or define neighborhoods
 -Inverse distance weighting as the most common
 -Rook, queen, bishop moves for raster data
 
-![Example for Raster size importance](Images/rook.jpg)
+![Examples of Neighbors](Images/rook.jpg)
 
--Distance bands - discrete neighborhoods define by distance from a cell or polygon that is pre-assigned by the user. Anything that falls withing that radius is part of the neighborhood.
+- Distance bands - discrete neighborhoods define by distance from a cell or polygon that is pre-assigned by the user. Anything that falls withing that radius is part of the neighborhood.
 
-#Come on kids, Lets play with stats now!
+# Come on Morans, You cant stop us!... Lets play with stats now!
 
 Let us start with join count analysis. This type of analysis looks at sets of data that have character attributes and spatial location. Character attributes can include prescence/abscence data as well as characterizations such as blue versus red states. Join count statistics can tell you whether your data is clumped, randomly dispersed, or uniformly dispersed. Join count statistics are typically used when dealing with polygons rather than points.
 
@@ -325,8 +319,6 @@ joincount.mc(as.factor(acru.rast@data@values), lwb.acru, nsim = 999, alternative
 joincount.mc(as.factor(acru.rast@data@values), lwb.queen.acru, nsim = 999, alternative = "greater")
 ```
 
-
-<<<<<<INTERPRETATION OF DATA
 
 Now lets break this methodology down so that we can apply it to our own data for join count statistics.
 
@@ -403,7 +395,6 @@ joincount.mc(as.factor(clumped.rast@data@values), lwb, nsim = 999, alternative =
 joincount.mc(as.factor(clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
 
->>>>>GREG EXPLAIN INTERPREATION
 
 This is for a dataset with a single, very clumped distribution
 ```{r}
@@ -437,7 +428,6 @@ lwb.vc.queen <- nb2listw(nb.vc.queen, style = "B")
 # permutation test:
 #joincount.mc(as.factor(v_clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
->>>>GREG 1 sentence interpretation
 
 
 This is uniformly distributed data
@@ -473,9 +463,10 @@ lwb.queen <- nb2listw(nb.queen, style = "B")
 # permutation test:
 #joincount.mc(as.factor(unif.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
->>>>>GREG EXPLAIN INTERPRETATION
 
-#Continuous Data Statistics 
+![](Images/spock-intrest.jpg)
+
+# Continuous Data Statistics 
 
 While join count statistics is powerful for prescence/abscence and character attributes, most of the time ecology deals with continuous data and many variables. Statics such as Moran's I and Geary's C are often used for to calculate spatial autocorrelation. Using the Harvard Forest example, we can calculate both statistics.
 
@@ -488,10 +479,11 @@ acru.sample.df<- as.data.frame(acru.sample)
 
 We will use the package spdep. We can use other packages for these statistics. spdep allows for more customization, espeically for distance bands. Distance bands are important as they allow you to define neighborhoods, which determine how far from a point its value will affect other values. In ecology these distance bands can include how far an animal can travel, or perhaps how far a pollutant can travel in a body of water before it's toxicity disipates.
 
-MONTE CARLO is essentially bootstrapping the NORMAL METHODS. 
-##Harvard Tree Data 
+MONTE CARLO is essentially bootstrapping the NORMAL METHODS.
 
-###Moran's I
+## Harvard Tree Data 
+
+### Moran's I
 ```{r}
 moran.out.acru <-moran.test(acru.sample$dbh91, nb2listw(nb.queen, style = "B"))
 moran.out.acru
@@ -504,7 +496,7 @@ moran.acru.mc
 ```
 
 
-###Geary C
+### Geary C
 ```{r}
 acru.geary.out<- geary.test(acru.sample$dbh91, nb2listw(nb.acru, style = "B"))
 acru.geary.out
@@ -517,7 +509,7 @@ acru.geary.mc
 
 
 
-###Local Moran's I
+### Local Moran's I
 ```{r}
 acru.rast.count <-rasterize(x=acru.sample, y=acru.rast, field=acru.spdf$dbh91)
 acru.rast.count
@@ -525,11 +517,12 @@ plot(MoranLocal(acru.rast.count))
 ```
 
 
-##Simulated Data
+## Simulated Data
 
 Next we will run the same statistical tests as we did with the tree data
 For our random data
-###Random Data
+
+### Random Data
 ```{r}
 #Moran's I
 random.moran <- correlog(coordinates(random.spdf), d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
@@ -556,7 +549,7 @@ rand.geary.mc
 ```
 
 
-###For our clumped data
+### For our clumped data
 ```{r}
 #Moran's
 moran.out.clump <- moran.test(clumped.df$V3, nb2listw(nb.clump, style = "B"))
@@ -581,13 +574,13 @@ clump.geary.mc<- geary.mc(clumped.df$V3, nb2listw(nb.clump, style = "B"), nsim=9
 clump.geary.mc
 ```
 
-###For our very clumped data
+### For our very clumped data
 ```{r}
 #Moran's I
 v_clumped.moran <- correlog(v_clumped.spdf, n$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
 # Can view the textual results by simply typing 'random.moran'
 plot(v_clumped.moran) #plots the results
-#is this right?
+
 moran.out.vc <- moran.test(v_clump.df$V3, nb2listw(nb.vc, style = "B"))
 moran.out.vc
 moran.vc.mc<- moran.mc(v_clump.df$V3, nb2listw(nb.vc, style = "B"), nsim=99)
@@ -606,7 +599,7 @@ vc.geary.mc
 ```
 
 
-#Interpolation
+# Interpolation
 
 You can also use the data that is already collected to interpolate across to areas for which you have no data. We will use the example from the tree data, though it is admittedly a strange example, as trees dont cover entire areas.
 The 2 plots have different levels of effect across points, making smoother, or less smooth images.
@@ -626,7 +619,7 @@ grid.new<-as.data.frame(spsample(acru.spdf ,"regular", n=500))
 names(grid.new)       <- c("X", "Y")
 coordinates(grid.new) <- c("X", "Y")
 gridded(grid.new)     <- TRUE  # Create SpatialPixel object
-fullgrid(grid.new)
+fullgrid(grid.new)    <- TRUE 
 #This is the actual interpolation, tell it what to interpolate
 #This first one has the least smoothing
 P.orig.idw <- gstat::idw(dbh91 ~ 1, acru.spdf, newdata=grid.new, idp=3.0)
@@ -648,10 +641,12 @@ P.idw <- gstat::idw(dbh91 ~ 1, acru.spdf, newdata=grid, idp=1.0)
 
 plot(P.idw)
 ```
+
 The output from these expand our data to cover all the places that we didnt sample. Essintially, they are saying that if there were trees covering the area, these are the expected diameter at breast height values. There are 2 versions. The first is more pixelated and true to the original data. The second is more smooth. This is beacause they have different levels of influence from surrounding points. THe second graph takes more of its influence of values from other points, so the values average out more across space. 
 
 
-#Citations
+# Citations
+
 <https://rdrr.io/rforge/spdep/man/localG.html> For G star
 </br>
 <https://github.com/r-spatial/spdep/blob/master/man/localG.Rd> For localG
