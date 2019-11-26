@@ -263,8 +263,10 @@ Inverse distance matricies and distance weighting assume that points that are cl
 Different ways we can compare neighbors or define neighborhoods
 -Define what a neighborhood is
 -Inverse distance weighting as the most common
--Rook, queen, bishop moves for raster data 
-![Example for Raster size importance](Images/Screen Shot 2019-11-25 at 10.02.49 PM)
+-Rook, queen, bishop moves for raster data
+
+![Example for Raster size importance](Images/rook.jpg)
+
 -Distance bands - discrete neighborhoods define by distance from a cell or polygon that is pre-assigned by the user. Anything that falls withing that radius is part of the neighborhood.
 
 #Come on kids, Lets play with stats now!
@@ -323,7 +325,7 @@ joincount.mc(as.factor(acru.rast@data@values), lwb.acru, nsim = 999, alternative
 joincount.mc(as.factor(acru.rast@data@values), lwb.queen.acru, nsim = 999, alternative = "greater")
 ```
 
-<<<<<<GREG DEFINE MONTE CARLO VS NORMAL METHODS
+
 <<<<<<INTERPRETATION OF DATA
 
 Now lets break this methodology down so that we can apply it to our own data for join count statistics.
@@ -371,7 +373,7 @@ joincount.mc(as.factor(random.rast@data@values), lwb.rand.queen, nsim = 999, alt
 
 
 This is the data where everything is clumped
-```{r echo=F}
+```{r}
 clumped.spdf <- as.data.frame(cbind(e$x,e$y))
 clumped.df<- as.data.frame(cbind(e$x,e$y, e$X.1))
 #Define the extent for the join count analyses
@@ -404,7 +406,7 @@ joincount.mc(as.factor(clumped.rast@data@values), lwb.queen, nsim = 999, alterna
 >>>>>GREG EXPLAIN INTERPREATION
 
 This is for a dataset with a single, very clumped distribution
-```{r echo=F}
+```{r}
 #Rasterize
 v_clumped.spdf <- as.data.frame(cbind(n$x,n$y))
 v_clump.df<- as.data.frame(cbind(n$x,n$y, n$att))
@@ -427,19 +429,19 @@ lwb.vc <- nb2listw(nb.vc, style = "B")
 lwb.vc.queen <- nb2listw(nb.vc.queen, style = "B")
 
 #join Counts
-joincount.test(as.factor(v_clumped.rast@data@values), lwb, alternative = "greater")
+#joincount.test(as.factor(v_clumped.rast@data@values), lwb, alternative = "greater")
 # Second, the permutation-based jon count test; similar to above, and you
 # can adjust the number of simulations with the 'nsim' argument
-joincount.mc(as.factor(v_clumped.rast@data@values), lwb, nsim = 999, alternative = "greater")
+#joincount.mc(as.factor(v_clumped.rast@data@values), lwb, nsim = 999, alternative = "greater")
 # Can also compute these for the queen setup; for example, with the
 # permutation test:
-joincount.mc(as.factor(v_clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
+#joincount.mc(as.factor(v_clumped.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
 >>>>GREG 1 sentence interpretation
 
 
 This is uniformly distributed data
-```{r echo=F}
+```{r}
 unif.spdf <- as.data.frame(cbind(v$x,v$y))
 unif.df<- as.data.frame(cbind(v$x,v$y,v$att))
 #Define the extent for the join count analyses
@@ -463,15 +465,17 @@ lwb.unif <- nb2listw(nb.unif, style = "B")
 lwb.queen <- nb2listw(nb.queen, style = "B")
 
 #join Counts
-joincount.test(as.factor(unif.rast@data@values), lwb, alternative = "greater")
+#joincount.test(as.factor(unif.rast@data@values), lwb, alternative = "greater")
 # Second, the permutation-based jon count test; similar to above, and you
 # can adjust the number of simulations with the 'nsim' argument
-joincount.mc(as.factor(unif.rast@data@values), lwb, nsim = 999, alternative = "greater")
+#joincount.mc(as.factor(unif.rast@data@values), lwb, nsim = 999, alternative = "greater")
 # Can also compute these for the queen setup; for example, with the
 # permutation test:
-joincount.mc(as.factor(unif.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
+#joincount.mc(as.factor(unif.rast@data@values), lwb.queen, nsim = 999, alternative = "greater")
 ```
 >>>>>GREG EXPLAIN INTERPRETATION
+
+#Continuous Data Statistics 
 
 While join count statistics is powerful for prescence/abscence and character attributes, most of the time ecology deals with continuous data and many variables. Statics such as Moran's I and Geary's C are often used for to calculate spatial autocorrelation. Using the Harvard Forest example, we can calculate both statistics.
 
@@ -484,7 +488,10 @@ acru.sample.df<- as.data.frame(acru.sample)
 
 We will use the package spdep. We can use other packages for these statistics. spdep allows for more customization, espeically for distance bands. Distance bands are important as they allow you to define neighborhoods, which determine how far from a point its value will affect other values. In ecology these distance bands can include how far an animal can travel, or perhaps how far a pollutant can travel in a body of water before it's toxicity disipates.
 
-Moran's I
+MONTE CARLO is essentially bootstrapping the NORMAL METHODS. 
+##Harvard Tree Data 
+
+###Moran's I
 ```{r}
 moran.out.acru <-moran.test(acru.sample$dbh91, nb2listw(nb.queen, style = "B"))
 moran.out.acru
@@ -495,10 +502,9 @@ plot(acru.moran) #plots the results
 moran.acru.mc<- moran.mc(acru.sample$dbh91, nb2listw(nb.acru, style = "B"), nsim=99)
 moran.acru.mc
 ```
->>>>GREG EXPLALIN MORANS I INTERPREATION AND THE GRAPH
 
 
-Geary C
+###Geary C
 ```{r}
 acru.geary.out<- geary.test(acru.sample$dbh91, nb2listw(nb.acru, style = "B"))
 acru.geary.out
@@ -508,10 +514,10 @@ plot(acru.geary)
 acru.geary.mc<- geary.mc(acru.sample$dbh91, nb2listw(nb.acru, style = "B"), nsim=99)
 acru.geary.mc
 ```
->>>>GREG EXPLAIN
 
 
-Local Moran's I
+
+###Local Moran's I
 ```{r}
 acru.rast.count <-rasterize(x=acru.sample, y=acru.rast, field=acru.spdf$dbh91)
 acru.rast.count
@@ -519,8 +525,11 @@ plot(MoranLocal(acru.rast.count))
 ```
 
 
+##Simulated Data
+
 Next we will run the same statistical tests as we did with the tree data
 For our random data
+###Random Data
 ```{r}
 #Moran's I
 random.moran <- correlog(coordinates(random.spdf), d$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
@@ -546,7 +555,8 @@ rand.geary.mc<- geary.mc(random.df$V3, nb2listw(nb.rand, style = "B"), nsim=99)
 rand.geary.mc
 ```
 
-For our clumped data
+
+###For our clumped data
 ```{r}
 #Moran's
 moran.out.clump <- moran.test(clumped.df$V3, nb2listw(nb.clump, style = "B"))
@@ -571,7 +581,7 @@ clump.geary.mc<- geary.mc(clumped.df$V3, nb2listw(nb.clump, style = "B"), nsim=9
 clump.geary.mc
 ```
 
-For our very clumped data
+###For our very clumped data
 ```{r}
 #Moran's I
 v_clumped.moran <- correlog(v_clumped.spdf, n$att, method = "Moran", nbclass = NULL, alternative = "two.sided")
@@ -594,10 +604,9 @@ geary.out.vc
 vc.geary.mc<- geary.mc(v_clump.df$V3, nb2listw(nb.vc, style = "B"), nsim=99)
 vc.geary.mc
 ```
->>>>GREG 1 sentence interpretation
 
 
-
+#Interpolation
 
 You can also use the data that is already collected to interpolate across to areas for which you have no data. We will use the example from the tree data, though it is admittedly a strange example, as trees dont cover entire areas.
 The 2 plots have different levels of effect across points, making smoother, or less smooth images.
@@ -608,7 +617,6 @@ g<- ggplot(data=acru, aes(x=xsite, y=ysite)) + geom_tile(mapping= aes(fill=acru.
 g
 ```
 
->>>>>>>ALSO CAN WE PUT THIS LAST AFTER THE STATS.
 
 Now that we have seen/remembered what our raster looks like, we will interpolate our data to the surrounding areas. This will use the data we have and use distance weighting in the background to casue closer points to have more effect on an interpolated point than farther points.
 ```{r}
@@ -643,12 +651,16 @@ plot(P.idw)
 The output from these expand our data to cover all the places that we didnt sample. Essintially, they are saying that if there were trees covering the area, these are the expected diameter at breast height values. There are 2 versions. The first is more pixelated and true to the original data. The second is more smooth. This is beacause they have different levels of influence from surrounding points. THe second graph takes more of its influence of values from other points, so the values average out more across space. 
 
 
-Citations
+#Citations
 <https://rdrr.io/rforge/spdep/man/localG.html> For G star
 </br>
 <https://github.com/r-spatial/spdep/blob/master/man/localG.Rd> For localG
 </br>
 <https://cran.r-project.org/web/packages/lctools/vignettes/SpatialAutocorrelation.pdf>
-<https://mltconsecol.github.io/TU_LandscapeAnalysis_Documents/Assignments_web/Assignment06_Autocorrelation.pdf> Harvard Trees
+</br>
+<https://mltconsecol.github.io/TU_LandscapeAnalysis_Documents/Assignments_web/Assignment06_Autocorrelation.pdf>
+</br>
+Harvard Trees
 <https://gdmdata.com/media/documents/handouts/2017ASA_FarmToTable_Spatial_correlation.pdf>
-<https://rstudio-pubs-static.s3.amazonaws.com/223305_944ddc517306448f8fb0d60ca29dd94b.html> Examples for greg?
+</br>
+<https://rstudio-pubs-static.s3.amazonaws.com/223305_944ddc517306448f8fb0d60ca29dd94b.html> 
