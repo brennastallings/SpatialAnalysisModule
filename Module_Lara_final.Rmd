@@ -244,28 +244,28 @@ Global tests look for clustering within your entire dataset, while local stats c
 
 ##What are Weight Counts? And is impolite to ask?
 
-First we need to call in our clumped data
+First we will look at our clumped data
 ```{r}
 plot(e[,2], e[,3], main="Clumped Data Example",
      xlab="Lat ", ylab="Long ", xlim=c(0, 100), ylim = c(0,100), pch=e[,4])
 ```
-First we want to make a distance matrix and inverse distance matrix
+Next, we want to make a distance matrix and inverse distance matrix
 ```{r}
-e.small<- sample_n(e[2:3], size=50, replace=F)
+e.small<- sample_n(e[2:3], size=5, replace=F)
 e.dis<- pointDistance(e.small, lonlat=F)
 #make the  matrix
 w<- 1/e.dis
+w
 ```
 
 Inverse distance matricies and distance weighting assume that points that are closer togther are more statistically significant.
 
-
 Different ways we can compare neighbors or define neighborhoods
 -Define what a neighborhood is
 -Inverse distance weighting as the most common
--Rook, queen, bishop moves for raster data <<<<GREG EXAMPLE!!!!
--Distance bands (discrete neighborhoods define by distance from a cell or polygon) <<<<EXAMPLE
--Nearest K neighbor
+-Rook, queen, bishop moves for raster data 
+![Example for Raster size importance](Images/Screen Shot 2019-11-25 at 10.02.49 PM)
+-Distance bands - discrete neighborhoods define by distance from a cell or polygon that is pre-assigned by the user. Anything that falls withing that radius is part of the neighborhood.
 
 #Come on kids, Lets play with stats now!
 
